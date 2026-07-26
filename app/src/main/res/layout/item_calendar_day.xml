@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 日历单个日期格：日期数字 + 心情 emoji 圆点（有记录时显示）。点击记心情/看详情。 -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/cell"
+    android:layout_width="match_parent"
+    android:layout_height="56dp"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:background="@color/card"
+    android:clickable="true"
+    android:focusable="true">
+
+    <TextView
+        android:id="@+id/tvDay"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@color/ink"
+        android:textSize="14sp" />
+
+    <TextView
+        android:id="@+id/tvDot"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:textSize="13sp"
+        android:visibility="gone" />
+</LinearLayout>

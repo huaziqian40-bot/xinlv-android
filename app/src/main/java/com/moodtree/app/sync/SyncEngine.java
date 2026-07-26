@@ -27,6 +27,8 @@ public class SyncEngine {
         public String error;          // null = 成功（或离线跳过）
         public boolean offline;       // 连不上服务器
 
+        public interface Callback { void onResult(SyncResult r); }
+
         public static SyncResult error(String msg, boolean offline) {
             SyncResult r = new SyncResult();
             r.error = msg;
@@ -110,18 +112,13 @@ public class SyncEngine {
     /** 服务端拉下来的记录入库。本地有更新的（含未上传的脏数据）则跳过，保持本地优先 */
     private boolean saveFromServer(MoodDao dao, MoodEntry e) {
         MoodEntry local = dao.get(e.uuid);
-        if (local != null && compareIso(local.updatedAt) >= compareIso(e.updatedAt)) {
+        if (local != null && local.updatedAt != null && e.updatedAt != null
+                && local.updatedAt.compareTo(e.updatedAt) >= 0) {
             return false;   // 本地更新或相同，不覆盖
         }
         e.dirty = false;
         dao.upsert(e);
         return true;
-    }
-
-    /** ISO8601 字符串字典序比较（同为带时区的 ISO 串时字典序 == 时间序）。返回正/零/负。 */
-    private static long compareIso(String a) {
-        if (a == null) return 0;
-        return a.length() * 1000000L + a.hashCode();
     }
 
     /** 刷新推荐目录缓存（登录后或用户手动刷新时调用；离线静默失败） */

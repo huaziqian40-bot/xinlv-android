@@ -1,0 +1,117 @@
+package com.moodtree.app.ui;
+
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.BaseAdapter;
+import android.widget.TextView;
+
+import com.moodtree.app.R;
+import com.moodtree.app.model.MoodMeta;
+import com.moodtree.app.model.Theme;
+import com.moodtree.app.util.Dates;
+
+import java.time.DayOfWeek;
+import java.time.LocalDate;
+import java.time.YearMonth;
+import java.util.HashMap;
+import java.util.Map;
+
+/** 日历网格适配器：周一为一周起点，前导空格补齐。每个有记录的日子显示心情 emoji。
+ *  点格子回调：有记录→看详情，空日子/今天→记心情。 */
+public class CalendarAdapter extends BaseAdapter {
+
+    /** 格子内容：null 表示占位空格（月初对齐用） */
+    public static class Cell {
+        public LocalDate date;
+        public boolean isToday;
+        public String moodKey;   // 该日第一条心情（空表示无记录）
+    }
+
+    public interface OnCellClick { void onClick(Cell cell); }
+
+    private final LayoutInflater inflater;
+    private final Cell[] cells = new Cell[42];   // 6 行 × 7 列
+    private final Map<String, String> dateToMood = new HashMap<>();  // yyyy-MM-dd -> moodKey
+    private OnCellClick clickListener;
+    private YearMonth month;
+
+    public CalendarAdapter(LayoutInflater inflater) {
+        this.inflater = inflater;
+    }
+
+    /** 设置当前月份并重算网格（周一为起点） */
+    public void setMonth(YearMonth ym, Map<String, String> moodByDate) {
+        this.month = ym;
+        this.dateToMood.clear();
+        if (moodByDate != null) this.dateToMood.putAll(moodByDate);
+
+        LocalDate first = ym.atDay(1);
+        // 周一=1...周日=7，转成"前导空格数"：让 1 号落在对应列
+        int leading = first.getDayOfWeek().getValue() % 7;   // 周日(7)%7=0 落最后一列，周一(1)%7=1 落第一列
+        int daysInMonth = ym.lengthOfMonth();
+        LocalDate today = LocalDate.now();
+
+        for (int i = 0; i < 42; i++) {
+            int dayNum = i - leading + 1;
+            if (dayNum < 1 || dayNum > daysInMonth) {
+                cells[i] = null;
+            } else {
+                Cell c = new Cell();
+                c.date = ym.atDay(dayNum);
+                c.isToday = c.date.equals(today);
+                c.moodKey = dateToMood.get(c.date.toString());
+                cells[i] = c;
+            }
+        }
+        notifyDataSetChanged();
+    }
+
+    public YearMonth getMonth() { return month; }
+
+    public void setClickListener(OnCellClick l) { this.clickListener = l; }
+
+    @Override public int getCount() { return 42; }
+    @Override public Object getItem(int position) { return cells[position]; }
+    @Override public long getItemId(int position) { return position; }
+
+    @Override
+    public View getView(int position, View convertView, ViewGroup parent) {
+        if (convertView == null) {
+            convertView = inflater.inflate(R.layout.item_calendar_day, parent, false);
+        }
+        Cell c = cells[position];
+        TextView tvDay = convertView.findViewById(R.id.tvDay);
+        TextView tvDot = convertView.findViewById(R.id.tvDot);
+
+        if (c == null) {
+            // 占位空格：透明，不响应点击
+            tvDay.setText("");
+            tvDot.setVisibility(View.GONE);
+            convertView.setEnabled(false);
+            convertView.setClickable(false);
+            convertView.setBackgroundColor(0x00000000);
+            return convertView;
+        }
+
+        tvDay.setText(String.valueOf(c.date.getDayOfMonth()));
+        tvDay.setTextColor(c.isToday ? Theme.ACCENT : Theme.INK);
+
+        if (c.moodKey != null) {
+            MoodMeta m = MoodMeta.of(c.moodKey);
+            tvDot.setText(m.emoji);
+            tvDot.setVisibility(View.VISIBLE);
+        } else {
+            tvDot.setVisibility(View.GONE);
+        }
+
+        // 选中/今天背景
+        convertView.setBackgroundColor(Theme.CARD);
+        convertView.setEnabled(true);
+        convertView.setClickable(true);
+        convertView.setOnClickListener(v -> {
+            if (clickListener != null) clickListener.onClick(c);
+        });
+        return convertView;
+    }
+}

@@ -9,8 +9,12 @@ import androidx.fragment.app.Fragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.moodtree.app.App;
 import com.moodtree.app.R;
+import com.moodtree.app.db.MoodEntry;
+import com.moodtree.app.sync.SyncEngine;
+import com.moodtree.app.util.Bg;
 
-/** 主界面：底部导航四页（日历/推荐/树洞/我的）。游客与登录用户共用，各页内部按状态适配。 */
+/** 主界面：底部导航四页（日历/推荐/树洞/我的）。游客与登录用户共用，各页内部按状态适配。
+ *  本类还承担本地写库 + 触发同步的入口（saveMoodEntry / deleteMoodEntry / requestSync）。 */
 public class MainActivity extends AppCompatActivity {
 
     private final CalendarFragment calendarFrag = new CalendarFragment();
@@ -50,8 +54,52 @@ public class MainActivity extends AppCompatActivity {
             getSupportFragmentManager().beginTransaction()
                     .hide(active).show(target).commit();
             active = target;
+            // 切到某页时让它刷新数据（联网后可能已变化）
+            if (target instanceof Refreshable) ((Refreshable) target).refresh();
             return true;
         });
+
+        // 进主界面后异步同步一轮（登录用户）；游客静默跳过
+        requestSync(null);
+    }
+
+    /** 保存（新建或编辑）一条心情记录到本地库，打 dirty 标记，再异步同步。 */
+    public void saveMoodEntry(MoodEntry e) {
+        Bg.run(() -> {
+            app().db().moodDao().upsert(e);
+            Bg.ui(this::refreshCalendar);
+            requestSync(null);
+        });
+    }
+
+    /** 删除一条记录（墓碑：deleted=1 + dirty=1），再异步同步。 */
+    public void deleteMoodEntry(MoodEntry e) {
+        Bg.run(() -> {
+            e.deleted = true;
+            e.updatedAt = com.moodtree.app.util.Dates.nowIso();
+            e.dirty = true;
+            app().db().moodDao().upsert(e);
+            Bg.ui(this::refreshCalendar);
+            requestSync(null);
+        });
+    }
+
+    /** 触发一轮同步。游客/未登录跳过；结果可选回调到主线程。 */
+    public void requestSync(SyncEngine.SyncResult.Callback cb) {
+        App a = app();
+        if (!a.config().loggedIn()) return;   // 游客不同步
+        Bg.run(() -> {
+            SyncEngine.SyncResult r = new SyncEngine(a.config(), a.api(), a.db()).sync();
+            Bg.ui(() -> {
+                refreshCalendar();
+                if (cb != null) cb.onResult(r);
+            });
+        });
+    }
+
+    /** 让日历页重新读库刷新（写库/同步后调用） */
+    private void refreshCalendar() {
+        if (calendarFrag.isAdded()) calendarFrag.reload();
     }
 
     /** 给 Fragment 拿 App 的便捷方法 */
