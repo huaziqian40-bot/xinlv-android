@@ -111,4 +111,16 @@ public class MoodDialogFragment extends DialogFragment {
 
         return d;
     }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        // Dialog 默认窗口是 wrap_content 宽度，心情网格会被挤成竖排单字、按钮缩没。
+        // 在 onStart 里把窗口拉宽到屏幕的 92%（onCreateDialog 阶段设置无效，会被系统布局覆盖）。
+        Dialog d = getDialog();
+        if (d != null && d.getWindow() != null) {
+            int w = (int) (getResources().getDisplayMetrics().widthPixels * 0.92);
+            d.getWindow().setLayout(w, android.view.ViewGroup.LayoutParams.WRAP_CONTENT);
+        }
+    }
 }

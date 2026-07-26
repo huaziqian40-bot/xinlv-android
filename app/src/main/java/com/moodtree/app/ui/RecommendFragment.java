@@ -101,7 +101,7 @@ public class RecommendFragment extends BaseFragment implements Refreshable {
                 err -> tvState.setText("推荐加载失败：" + err.getMessage()));
     }
 
-    /** 离线：从目录缓存按心情筛选随机挑几条（规则向服务端看齐） */
+    /** 离线：从目录缓存按心情筛选随机挑几条（规则向服务端看齐：正面给小知识，负面/中性给小练习） */
     private JsonObject offlineRecommend(String mood) {
         JsonObject rec = new JsonObject();
         rec.addProperty("mood", mood);
@@ -126,16 +126,23 @@ public class RecommendFragment extends BaseFragment implements Refreshable {
             if (hasMood(o, mood)) pool.add(o);
         }
         Collections.shuffle(pool);
-        for (int i = 0; i < Math.min(3, pool.size()); i++)
+        boolean positive = MoodMeta.isPositive(mood);
+        for (int i = 0; i < Math.min(positive ? 2 : 3, pool.size()); i++)
             activities.add(pool.get(i).get("text"));
 
-        pool.clear();
-        for (String payload : app().db().catalogDao().all("tips")) {
-            JsonObject o = JsonParser.parseString(payload).getAsJsonObject();
-            if (!o.has("moods") || hasMood(o, mood)) pool.add(o);
+        if (positive) {
+            // 服务端规则：心理小知识只推给正面心情
+            pool.clear();
+            for (String payload : app().db().catalogDao().all("tips")) {
+                JsonObject o = JsonParser.parseString(payload).getAsJsonObject();
+                if (!o.has("moods") || hasMood(o, mood)) pool.add(o);
+            }
+            Collections.shuffle(pool);
+            for (int i = 0; i < Math.min(2, pool.size()); i++) tips.add(pool.get(i));
+        } else {
+            // 负面/中性：即时小练习（兜底文案与服务端 QUICK_PRACTICE 一致）
+            rec.addProperty("practice", quickPractice(mood));
         }
-        Collections.shuffle(pool);
-        for (int i = 0; i < Math.min(2, pool.size()); i++) tips.add(pool.get(i));
 
         for (String payload : app().db().catalogDao().all("videos")) {
             JsonObject o = JsonParser.parseString(payload).getAsJsonObject();
@@ -147,6 +154,19 @@ public class RecommendFragment extends BaseFragment implements Refreshable {
         rec.add("tips", tips);
         if (video != null) rec.add("video", video);
         return rec;
+    }
+
+    /** 各负面/中性心情的即时小练习文案（与服务端 recommendations.QUICK_PRACTICE 一致） */
+    private static String quickPractice(String mood) {
+        switch (mood) {
+            case "anxious": return "试试 4-7-8 呼吸：吸气 4 秒，屏息 7 秒，缓缓呼气 8 秒，重复 4 轮。";
+            case "angry":   return "找个没人的地方，把想说的话写下来或大声说出来，先让情绪流动，再决定怎么做。";
+            case "sad":     return "允许自己难过一会儿，给信任的人发条消息，哪怕只是说一句「我今天不太好」。";
+            case "tired":   return "放下手机，闭眼休息 10 分钟，或者去窗边看看远处，让眼睛和大脑都松一下。";
+            case "lonely":  return "给一个久未联系的人发条消息，或出门走到有人的地方，孤独常常因连接而缓解。";
+            case "numb":    return "做一件具体的小事：喝口水、洗把脸、整理桌面，用身体的动作把自己拉回当下。";
+            default:        return "";
+        }
     }
 
     private boolean hasMood(JsonObject o, String mood) {
@@ -167,9 +187,11 @@ public class RecommendFragment extends BaseFragment implements Refreshable {
         JsonArray songs = rec.has("songs") ? rec.getAsJsonArray("songs") : null;
         JsonArray acts = rec.has("activities") ? rec.getAsJsonArray("activities") : null;
         JsonArray tips = rec.has("tips") ? rec.getAsJsonArray("tips") : null;
+        String practice = rec.has("practice") && !rec.get("practice").isJsonNull()
+                ? rec.get("practice").getAsString() : "";
         boolean hasVideo = rec.has("video") && rec.get("video").isJsonObject();
         boolean any = (songs != null && songs.size() > 0) || (acts != null && acts.size() > 0)
-                || (tips != null && tips.size() > 0) || hasVideo;
+                || (tips != null && tips.size() > 0) || hasVideo || !practice.isEmpty();
 
         if (!any) {
             tvState.setText(offline
@@ -179,7 +201,7 @@ public class RecommendFragment extends BaseFragment implements Refreshable {
         }
         tvState.setText("给「" + m.label + "」的你" + (offline ? "（离线缓存内容）" : ""));
 
-        if (songs != null) {
+        if (songs != null && songs.size() > 0) {
             LinearLayout card = card("🎵 听点音乐");
             for (JsonElement el : songs) {
                 JsonObject s = el.getAsJsonObject();
@@ -201,7 +223,7 @@ public class RecommendFragment extends BaseFragment implements Refreshable {
             resultBox.addView(card);
         }
 
-        if (acts != null) {
+        if (acts != null && acts.size() > 0) {
             LinearLayout card = card("🌱 可以试试这些小事");
             for (JsonElement el : acts) {
                 TextView t = new TextView(requireContext());
@@ -218,7 +240,8 @@ public class RecommendFragment extends BaseFragment implements Refreshable {
             resultBox.addView(card);
         }
 
-        if (tips != null) {
+        // 服务端规则：负面/中性心情没有小知识（tips 为空数组），空卡不能渲染，否则只见标题不见内容
+        if (tips != null && tips.size() > 0) {
             LinearLayout card = card("💡 心理小知识");
             for (JsonElement el : tips) {
                 JsonObject t = el.getAsJsonObject();
@@ -247,6 +270,17 @@ public class RecommendFragment extends BaseFragment implements Refreshable {
                     card.addView(src);
                 }
             }
+            resultBox.addView(card);
+        }
+
+        // 即时小练习（负面/中性心情，服务端 practice 字段；与网页端结果页一致）
+        if (!practice.isEmpty()) {
+            LinearLayout card = card("🌬️ 来试一个小练习");
+            TextView t = new TextView(requireContext());
+            t.setText(practice);
+            t.setTextColor(Theme.INK);
+            t.setTextSize(14);
+            card.addView(t);
             resultBox.addView(card);
         }
 
