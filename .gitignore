@@ -4,3 +4,7 @@ build/
 local.properties
 *.iml
 .cxx/
+
+# 签名密钥与密码，绝不进版本控制（含密钥/凭证）
+moodtree.jks
+keystore.properties
