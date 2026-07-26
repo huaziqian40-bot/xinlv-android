@@ -32,6 +32,8 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
         setContentView(R.layout.activity_main);
+        // 顶部避让状态栏（只给内容容器加顶部 padding，底部导航栏仍贴系统底）
+        com.moodtree.app.util.Insets.applyTop(findViewById(R.id.fragmentContainer));
 
         // 一次性把四个 Fragment 都加进来，切换时只 show/hide（保留各自状态）
         getSupportFragmentManager().beginTransaction()

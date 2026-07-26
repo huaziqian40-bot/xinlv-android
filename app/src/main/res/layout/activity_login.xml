@@ -12,17 +12,17 @@
         android:gravity="center_horizontal"
         android:padding="32dp">
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="🌳"
-            android:textSize="64sp"
+        <ImageView
+            android:layout_width="96dp"
+            android:layout_height="96dp"
+            android:src="@drawable/logo"
+            android:contentDescription="念今心"
             android:layout_marginTop="24dp" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="心情树洞"
+            android:text="念今心"
             android:textSize="26sp"
             android:textStyle="bold"
             android:textColor="@color/ink"

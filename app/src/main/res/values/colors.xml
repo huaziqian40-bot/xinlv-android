@@ -10,4 +10,6 @@
     <color name="danger">#c9706a</color>
     <color name="divider">#e5dccb</color>
     <color name="white">#ffffff</color>
+    <!-- 自适应图标背景：取 logo.jpg 的底色（暖米），与前景 logo 协调 -->
+    <color name="ic_launcher_background">#FFEFD5</color>
 </resources>

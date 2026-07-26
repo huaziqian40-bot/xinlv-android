@@ -44,6 +44,8 @@ public class LoginActivity extends AppCompatActivity {
         }
 
         setContentView(R.layout.activity_login);
+        // 顶部避让状态栏，内容不被系统 UI 遮挡
+        com.moodtree.app.util.Insets.applyTop(findViewById(android.R.id.content));
         applyThemeToViews();
 
         etUser = findViewById(R.id.etUsername);
