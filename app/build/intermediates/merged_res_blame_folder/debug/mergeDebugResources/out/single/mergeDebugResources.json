@@ -1,0 +1,46 @@
+[
+    {
+        "merged": "com.moodtree.app-debug-36:/drawable_ic_launcher_foreground.xml.flat",
+        "source": "com.moodtree.app-main-38:/drawable/ic_launcher_foreground.xml"
+    },
+    {
+        "merged": "com.moodtree.app-debug-36:/drawable_ic_chat.xml.flat",
+        "source": "com.moodtree.app-main-38:/drawable/ic_chat.xml"
+    },
+    {
+        "merged": "com.moodtree.app-debug-36:/drawable_ic_me.xml.flat",
+        "source": "com.moodtree.app-main-38:/drawable/ic_me.xml"
+    },
+    {
+        "merged": "com.moodtree.app-debug-36:/mipmap-anydpi-v26_ic_launcher_round.xml.flat",
+        "source": "com.moodtree.app-main-38:/mipmap-anydpi-v26/ic_launcher_round.xml"
+    },
+    {
+        "merged": "com.moodtree.app-debug-36:/drawable_ic_recommend.xml.flat",
+        "source": "com.moodtree.app-main-38:/drawable/ic_recommend.xml"
+    },
+    {
+        "merged": "com.moodtree.app-debug-36:/layout_fragment_stub.xml.flat",
+        "source": "com.moodtree.app-main-38:/layout/fragment_stub.xml"
+    },
+    {
+        "merged": "com.moodtree.app-debug-36:/layout_activity_login.xml.flat",
+        "source": "com.moodtree.app-main-38:/layout/activity_login.xml"
+    },
+    {
+        "merged": "com.moodtree.app-debug-36:/mipmap-anydpi-v26_ic_launcher.xml.flat",
+        "source": "com.moodtree.app-main-38:/mipmap-anydpi-v26/ic_launcher.xml"
+    },
+    {
+        "merged": "com.moodtree.app-debug-36:/menu_bottom_nav.xml.flat",
+        "source": "com.moodtree.app-main-38:/menu/bottom_nav.xml"
+    },
+    {
+        "merged": "com.moodtree.app-debug-36:/layout_activity_main.xml.flat",
+        "source": "com.moodtree.app-main-38:/layout/activity_main.xml"
+    },
+    {
+        "merged": "com.moodtree.app-debug-36:/drawable_ic_calendar.xml.flat",
+        "source": "com.moodtree.app-main-38:/drawable/ic_calendar.xml"
+    }
+]

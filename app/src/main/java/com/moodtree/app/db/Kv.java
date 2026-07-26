@@ -1,5 +1,6 @@
 package com.moodtree.app.db;
 
+import androidx.annotation.NonNull;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
 
@@ -7,6 +8,7 @@ import androidx.room.PrimaryKey;
 @Entity(tableName = "kv")
 public class Kv {
     @PrimaryKey
+    @NonNull
     public String key;
     public String value;
 }

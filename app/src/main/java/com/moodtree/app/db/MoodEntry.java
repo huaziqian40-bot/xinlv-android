@@ -1,5 +1,6 @@
 package com.moodtree.app.db;
 
+import androidx.annotation.NonNull;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
 
@@ -10,6 +11,7 @@ import androidx.room.PrimaryKey;
 public class MoodEntry {
 
     @PrimaryKey
+    @NonNull
     public String uuid;
 
     public String date;          // LocalDate 的 ISO 串，如 2026-07-26
