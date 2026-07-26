@@ -17,11 +17,11 @@ import com.moodtree.app.util.Bg;
  *  本类还承担本地写库 + 触发同步的入口（saveMoodEntry / deleteMoodEntry / requestSync）。 */
 public class MainActivity extends AppCompatActivity {
 
-    private final CalendarFragment calendarFrag = new CalendarFragment();
-    private final RecommendFragment recommendFrag = new RecommendFragment();
-    private final ChatFragment chatFrag = new ChatFragment();
-    private final MeFragment meFrag = new MeFragment();
-    private Fragment active = calendarFrag;
+    private CalendarFragment calendarFrag;
+    private RecommendFragment recommendFrag;
+    private ChatFragment chatFrag;
+    private MeFragment meFrag;
+    private Fragment active;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,16 +35,34 @@ public class MainActivity extends AppCompatActivity {
         // 顶部避让状态栏（只给内容容器加顶部 padding，底部导航栏仍贴系统底）
         com.moodtree.app.util.Insets.applyTop(findViewById(R.id.fragmentContainer));
 
-        // 一次性把四个 Fragment 都加进来，切换时只 show/hide（保留各自状态）
-        getSupportFragmentManager().beginTransaction()
-                .add(R.id.fragmentContainer, meFrag, "me").hide(meFrag)
-                .add(R.id.fragmentContainer, chatFrag, "chat").hide(chatFrag)
-                .add(R.id.fragmentContainer, recommendFrag, "recommend").hide(recommendFrag)
-                .add(R.id.fragmentContainer, calendarFrag, "calendar")
-                .commit();
+        androidx.fragment.app.FragmentManager fm = getSupportFragmentManager();
+        if (fm.findFragmentByTag("calendar") == null) {
+            // 首次进入：一次性把四个 Fragment 都加进来，切换时只 show/hide（保留各自状态）
+            calendarFrag = new CalendarFragment();
+            recommendFrag = new RecommendFragment();
+            chatFrag = new ChatFragment();
+            meFrag = new MeFragment();
+            fm.beginTransaction()
+                    .add(R.id.fragmentContainer, meFrag, "me").hide(meFrag)
+                    .add(R.id.fragmentContainer, chatFrag, "chat").hide(chatFrag)
+                    .add(R.id.fragmentContainer, recommendFrag, "recommend").hide(recommendFrag)
+                    .add(R.id.fragmentContainer, calendarFrag, "calendar")
+                    .commit();
+            active = calendarFrag;
+        } else {
+            // recreate（换主题/深浅色切换）后系统已自动恢复各 Fragment（含 show/hide 状态），
+            // 找回引用即可，不能再 add——否则会叠一层重复页面
+            calendarFrag = (CalendarFragment) fm.findFragmentByTag("calendar");
+            recommendFrag = (RecommendFragment) fm.findFragmentByTag("recommend");
+            chatFrag = (ChatFragment) fm.findFragmentByTag("chat");
+            meFrag = (MeFragment) fm.findFragmentByTag("me");
+            active = calendarFrag;
+            for (Fragment f : new Fragment[]{recommendFrag, chatFrag, meFrag}) {
+                if (f != null && !f.isHidden()) { active = f; break; }
+            }
+        }
 
         BottomNavigationView nav = findViewById(R.id.bottomNav);
-        nav.setSelectedItemId(R.id.nav_calendar);
         nav.setOnItemSelectedListener(item -> {
             Fragment target;
             int id = item.getItemId();
@@ -53,13 +71,24 @@ public class MainActivity extends AppCompatActivity {
             else if (id == R.id.nav_me) target = meFrag;
             else target = calendarFrag;
             if (target == active) return true;
-            getSupportFragmentManager().beginTransaction()
+            fm.beginTransaction()
                     .hide(active).show(target).commit();
             active = target;
             // 切到某页时让它刷新数据（联网后可能已变化）
             if (target instanceof Refreshable) ((Refreshable) target).refresh();
             return true;
         });
+        // 恢复当前页签：首次默认日历；recreate 时留在原页，不再跳回日历
+        int tabId = R.id.nav_calendar;
+        if (active == recommendFrag) tabId = R.id.nav_recommend;
+        else if (active == chatFrag) tabId = R.id.nav_chat;
+        else if (active == meFrag) tabId = R.id.nav_me;
+        nav.setSelectedItemId(tabId);
+        // recreate 恢复时，当前页的内存状态（已加载标记/消息列表）已随旧实例销毁，
+        // 主动触发一次刷新，否则停留在该页会显示空白（首次进入时各页自己会加载，不用触发）
+        if (savedInstanceState != null && active instanceof Refreshable) {
+            nav.post(() -> ((Refreshable) active).refresh());
+        }
 
         // 进主界面后异步同步一轮（登录用户）；游客静默跳过
         requestSync(null);

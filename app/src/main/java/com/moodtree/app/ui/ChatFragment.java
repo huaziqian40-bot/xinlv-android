@@ -191,7 +191,8 @@ public class ChatFragment extends BaseFragment implements Refreshable {
                 h.bubble.setTextColor(Color.WHITE);
                 h.bubble.setBackground(tint(Theme.ACCENT, radii));
                 h.row.setGravity(Gravity.END);
-                setSidePadding(h.row, 0, dp(60));
+                // 靠右的气泡：留白在左侧，气泡贴右边缘（此前左右写反，气泡被顶离边缘 60dp）
+                setSidePadding(h.row, dp(60), 0);
             } else if (m.crisis) {
                 radii[0] = big; radii[1] = big;
                 radii[2] = small; radii[3] = small;
@@ -201,7 +202,8 @@ public class ChatFragment extends BaseFragment implements Refreshable {
                 h.bubble.setBackground(tint(parseColor("#fdeaea"), radii));
                 h.bubble.setTypeface(h.bubble.getTypeface(), Typeface.BOLD);
                 h.row.setGravity(Gravity.START);
-                setSidePadding(h.row, dp(60), 0);
+                // 靠左的气泡：留白在右侧，气泡贴左边缘
+                setSidePadding(h.row, 0, dp(60));
             } else {
                 radii[0] = big; radii[1] = big;
                 radii[2] = small; radii[3] = small;
@@ -211,7 +213,7 @@ public class ChatFragment extends BaseFragment implements Refreshable {
                 h.bubble.setBackground(tint(Theme.CARD, radii));
                 h.bubble.setTypeface(null, Typeface.NORMAL);
                 h.row.setGravity(Gravity.START);
-                setSidePadding(h.row, dp(60), 0);
+                setSidePadding(h.row, 0, dp(60));
             }
         }
 
