@@ -1,0 +1,4 @@
+// 项目级构建：只声明插件版本，不做实际配置
+plugins {
+    id 'com.android.application' version '8.7.3' apply false
+}
