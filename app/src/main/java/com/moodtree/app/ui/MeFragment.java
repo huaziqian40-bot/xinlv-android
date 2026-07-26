@@ -84,20 +84,29 @@ public class MeFragment extends BaseFragment implements Refreshable {
 
     private void renderGuest() {
         contentBox.removeAllViews();
+        // 本地统计涉及 Room 查库，挪到后台线程算，算完回主线程渲染
+        Bg.run(() -> {
+                    int streak = 0, total = 0;
+                    try {
+                        total = app().db().moodDao().countAlive();
+                        List<String> dates = app().db().moodDao().listDistinctDates();
+                        Set<String> set = new HashSet<>(dates);
+                        LocalDate cursor = LocalDate.now();
+                        if (!set.contains(cursor.toString())) cursor = cursor.minusDays(1);
+                        while (set.contains(cursor.toString())) {
+                            streak++;
+                            cursor = cursor.minusDays(1);
+                        }
+                    } catch (Exception ignored) { }
+                    return new int[]{streak, total};
+                },
+                stat -> renderGuestViews(stat[0], stat[1]),
+                err -> renderGuestViews(0, 0));
+    }
 
-        int streak = 0, total = 0;
-        try {
-            total = app().db().moodDao().countAlive();
-            List<String> dates = app().db().moodDao().listDistinctDates();
-            Set<String> set = new HashSet<>(dates);
-            LocalDate cursor = LocalDate.now();
-            if (!set.contains(cursor.toString())) cursor = cursor.minusDays(1);
-            while (set.contains(cursor.toString())) {
-                streak++;
-                cursor = cursor.minusDays(1);
-            }
-        } catch (Exception ignored) { }
-
+    /** 游客页 UI 渲染（主线程）。streak/total 来自后台统计。 */
+    private void renderGuestViews(int streak, int total) {
+        if (!isAdded()) return;
         contentBox.addView(streakCard(streak, "连续记录 · 共 " + total + " 条（本机）"));
 
         LinearLayout card = card();
@@ -363,7 +372,8 @@ public class MeFragment extends BaseFragment implements Refreshable {
     private void doLogout() {
         app().config().setToken("");
         app().config().setGuestMode(false);
-        app().db().kvDao().set("last_sync", "");
+        // 清同步游标涉及 Room 写库，挪后台线程，避免主线程查库闪退
+        Bg.run(() -> app().db().kvDao().set("last_sync", ""));
         Intent i = new Intent(getActivity(), LoginActivity.class);
         i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(i);
