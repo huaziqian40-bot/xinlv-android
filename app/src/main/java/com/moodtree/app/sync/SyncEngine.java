@@ -160,6 +160,8 @@ public class SyncEngine {
         o.addProperty("note", e.note == null ? "" : e.note);
         o.addProperty("deleted", e.deleted);
         o.addProperty("updated_at", e.updatedAt);
+        o.addProperty("intensity_level", e.intensityLevel);
+        o.addProperty("intensity_percent", e.intensityPercent);
         return o;
     }
 
@@ -173,6 +175,8 @@ public class SyncEngine {
         e.deleted = o.has("deleted") && o.get("deleted").getAsBoolean();
         e.updatedAt = o.get("updated_at").getAsString();
         e.dirty = false;
+        e.intensityLevel = o.has("intensity_level") ? o.get("intensity_level").getAsInt() : 0;
+        e.intensityPercent = o.has("intensity_percent") ? o.get("intensity_percent").getAsInt() : 0;
         return e;
     }
 }

@@ -10,11 +10,13 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.moodtree.app.App;
 import com.moodtree.app.R;
 import com.moodtree.app.db.MoodEntry;
+import com.moodtree.app.model.MoodMeta;
 import com.moodtree.app.sync.SyncEngine;
 import com.moodtree.app.util.Bg;
 
 /** 主界面：底部导航四页（日历/推荐/树洞/我的）。游客与登录用户共用，各页内部按状态适配。
- *  本类还承担本地写库 + 触发同步的入口（saveMoodEntry / deleteMoodEntry / requestSync）。 */
+ *  本类还承担本地写库 + 触发同步的入口（saveMoodEntry / deleteMoodEntry / requestSync）。
+ *  含情绪视觉影响：最新心情叠色 + 雨滴动画（难过/孤独/麻木）。 */
 public class MainActivity extends AppCompatActivity {
 
     private CalendarFragment calendarFrag;
@@ -22,6 +24,10 @@ public class MainActivity extends AppCompatActivity {
     private ChatFragment chatFrag;
     private MeFragment meFrag;
     private Fragment active;
+
+    // ---- 情绪视觉影响 ----
+    private MoodOverlayView moodOverlay;
+    private RainView rainContainer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -92,13 +98,79 @@ public class MainActivity extends AppCompatActivity {
 
         // 进主界面后异步同步一轮（登录用户）；游客静默跳过
         requestSync(null);
+
+        // ---- 情绪视觉影响 ----
+        moodOverlay = findViewById(R.id.moodOverlay);
+        rainContainer = findViewById(R.id.rainContainer);
+        updateMoodVisual();
+    }
+
+    // ============ 情绪视觉影响 ============
+
+    /** 那些触发下雨的心情 key（与 Windows 端 + 网页端一致） */
+    private static final String[] RAIN_MOODS = {"sad", "lonely", "numb"};
+
+    /** 从数据库取最新一条心情，更新叠色和雨滴效果 */
+    public void updateMoodVisual() {
+        Bg.run(() -> {
+                    try {
+                        MoodEntry latest = app().db().moodDao().getLatest();
+                        if (latest == null) return null;
+                        MoodMeta meta = MoodMeta.of(latest.mood);
+                        return new Object[]{meta, latest.intensityLevel, latest.intensityPercent};
+                    } catch (Exception e) {
+                        return null;
+                    }
+                },
+                data -> {
+                    if (data == null) {
+                        moodOverlay.clear();
+                        moodOverlay.setVisibility(android.view.View.GONE);
+                        rainContainer.stopRain();
+                        return;
+                    }
+                    MoodMeta meta = (MoodMeta) data[0];
+                    int intensityLevel = (int) data[1];
+                    int intensityPercent = (int) data[2];
+
+                    // 叠色：径向渐变，颜色来自心情色，强度缩放透明度
+                    double opacity = 0.08;
+                    if (intensityLevel >= 2) opacity = 0.12;
+                    if (intensityLevel >= 3) opacity = 0.18;
+                    if (intensityLevel >= 4) opacity = 0.25;
+                    opacity *= (0.8 + 0.4 * intensityPercent / 100.0);
+
+                    int color;
+                    try {
+                        color = android.graphics.Color.parseColor(meta.color);
+                    } catch (Exception e) {
+                        color = android.graphics.Color.GRAY;
+                    }
+                    moodOverlay.setMoodColor(color, (float) opacity);
+                    moodOverlay.setVisibility(android.view.View.VISIBLE);
+
+                    // 雨滴动画：难过/孤独/麻木 三种心情
+                    boolean shouldRain = false;
+                    for (String rm : RAIN_MOODS) {
+                        if (rm.equals(meta.key)) { shouldRain = true; break; }
+                    }
+                    if (shouldRain && intensityLevel >= 1) {
+                        rainContainer.startRain();
+                    } else {
+                        rainContainer.stopRain();
+                    }
+                },
+                err -> { /* 静默 */ });
     }
 
     /** 保存（新建或编辑）一条心情记录到本地库，打 dirty 标记，再异步同步。 */
     public void saveMoodEntry(MoodEntry e) {
         Bg.run(() -> {
             app().db().moodDao().upsert(e);
-            Bg.ui(this::refreshCalendar);
+            Bg.ui(() -> {
+                refreshCalendar();
+                updateMoodVisual();
+            });
             requestSync(null);
         });
     }
@@ -110,7 +182,10 @@ public class MainActivity extends AppCompatActivity {
             e.updatedAt = com.moodtree.app.util.Dates.nowIso();
             e.dirty = true;
             app().db().moodDao().upsert(e);
-            Bg.ui(this::refreshCalendar);
+            Bg.ui(() -> {
+                refreshCalendar();
+                updateMoodVisual();
+            });
             requestSync(null);
         });
     }
@@ -123,6 +198,7 @@ public class MainActivity extends AppCompatActivity {
             SyncEngine.SyncResult r = new SyncEngine(a.config(), a.api(), a.db()).sync();
             Bg.ui(() -> {
                 refreshCalendar();
+                updateMoodVisual();
                 if (cb != null) cb.onResult(r);
             });
         });

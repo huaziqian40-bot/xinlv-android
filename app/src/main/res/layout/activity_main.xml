@@ -6,11 +6,35 @@
     android:orientation="vertical"
     android:background="@color/bg">
 
+    <!-- 内容区 + 情绪视觉叠层：FrameLayout 叠加多层，上层透明穿透不影响点击 -->
     <FrameLayout
-        android:id="@+id/fragmentContainer"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1" />
+        android:layout_weight="1">
+
+        <FrameLayout
+            android:id="@+id/fragmentContainer"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+        <!-- 情绪叠色径向渐变层（鼠标穿透，不影响点击） -->
+        <com.moodtree.app.ui.MoodOverlayView
+            android:id="@+id/moodOverlay"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone"
+            android:clickable="false"
+            android:focusable="false" />
+
+        <!-- 雨滴动画层（鼠标穿透） -->
+        <com.moodtree.app.ui.RainView
+            android:id="@+id/rainContainer"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone"
+            android:clickable="false"
+            android:focusable="false" />
+    </FrameLayout>
 
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottomNav"

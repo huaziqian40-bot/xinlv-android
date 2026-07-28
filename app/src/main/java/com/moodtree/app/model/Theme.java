@@ -29,17 +29,17 @@ public class Theme {
                 break;
             case "mint":
                 BG = parse("#eef6f1"); CARD = parse("#fbfffc"); INK = parse("#33403a");
-                INK_SOFT = parse("#7d8d85"); DIVIDER = parse("#e0efe7"); DANGER = parse("#c9706a");
+                INK_SOFT = parse("#5e6e65"); DIVIDER = parse("#e0efe7"); DANGER = parse("#c9706a");
                 ACCENT = custom ? accent : parse("#5ea07c"); ACCENT_D = parse("#4c8767");
                 break;
             case "sakura":
                 BG = parse("#faf0f2"); CARD = parse("#fffafa"); INK = parse("#43353a");
-                INK_SOFT = parse("#97828a"); DIVIDER = parse("#f5e3e8"); DANGER = parse("#c9706a");
+                INK_SOFT = parse("#7d6a72"); DIVIDER = parse("#f5e3e8"); DANGER = parse("#c9706a");
                 ACCENT = custom ? accent : parse("#d18a9a"); ACCENT_D = parse("#b87383");
                 break;
             default: // warm
                 BG = parse("#f6f1e7"); CARD = parse("#fffdf8"); INK = parse("#4a453d");
-                INK_SOFT = parse("#9a917f"); DIVIDER = parse("#e5dccb"); DANGER = parse("#c9706a");
+                INK_SOFT = parse("#6f6655"); DIVIDER = parse("#e5dccb"); DANGER = parse("#c9706a");
                 ACCENT = custom ? accent : parse("#7d9b76"); ACCENT_D = parse("#4c6b46");
                 break;
         }

@@ -1,3 +1,8 @@
 <resources>
     <string name="app_name">心履</string>
+    <string name="intensity">强度</string>
+    <string name="intensity_slight">略微</string>
+    <string name="intensity_some">有点</string>
+    <string name="intensity_quite">相当</string>
+    <string name="intensity_very">十分</string>
 </resources>

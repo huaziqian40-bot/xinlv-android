@@ -21,4 +21,6 @@ public class MoodEntry {
     public boolean deleted;      // 墓碑标记
     public String updatedAt;     // LWW 比较用的时间戳
     public boolean dirty;        // 本地改动未上传标记
+    public int intensityLevel;   // 1-4（略微/有点/相当/十分），0=未设置
+    public int intensityPercent; // 0-100
 }

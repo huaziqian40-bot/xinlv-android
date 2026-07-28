@@ -39,4 +39,8 @@ public interface MoodDao {
     /** 有记录的日期（去重，新→旧），游客模式本地算连胜用 */
     @Query("SELECT DISTINCT date FROM mood_entry WHERE deleted = 0 ORDER BY date DESC")
     List<String> listDistinctDates();
+
+    /** 获取最新一条心情记录（非删除），用于情绪视觉叠色 */
+    @Query("SELECT * FROM mood_entry WHERE deleted = 0 ORDER BY date DESC, at DESC LIMIT 1")
+    MoodEntry getLatest();
 }
