@@ -3,7 +3,6 @@ package com.moodtree.app.ui;
 import android.app.Dialog;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -13,7 +12,6 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.core.content.ContextCompat;
 import androidx.fragment.app.DialogFragment;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -187,12 +185,7 @@ public class MoodDialogFragment extends DialogFragment {
     private void updateSeekbarColor(int color) {
         // 滑块进度条颜色
         intensitySeek.getProgressDrawable().setColorFilter(color, PorterDuff.Mode.SRC_IN);
-        // 滑块 thumb 颜色
-        Drawable thumb = ContextCompat.getDrawable(requireContext(), android.R.drawable.seekbar_thumb);
-        if (thumb != null) {
-            thumb.setColorFilter(color, PorterDuff.Mode.SRC_IN);
-            intensitySeek.setThumb(thumb);
-        }
+        // 高版本 SDK 移除了 android.R.drawable.seekbar_thumb，跳过 thumb 染色
     }
 
     private static int parseColor(String hex) {

@@ -16,6 +16,16 @@ import com.moodtree.app.util.Dates;
 import java.util.ArrayList;
 import java.util.List;
 
+/** 强度百分位 → 中文标签 */
+class IntensityText {
+    static String of(int level, int pct) {
+        String[] labels = {"", "略微", "有点", "相当", "十分"};
+        String l = level >= 1 && level <= 4 ? labels[level] : "";
+        if (pct > 0) return l + " · " + pct + "%";
+        return l;
+    }
+}
+
 /** 某日心情记录列表适配器。长按一条弹删除确认（走墓碑 + dirty）。 */
 public class DayEntriesAdapter extends RecyclerView.Adapter<DayEntriesAdapter.VH> {
 
@@ -49,6 +59,14 @@ public class DayEntriesAdapter extends RecyclerView.Adapter<DayEntriesAdapter.VH
         h.mood.setText(m.label);
         String t = Dates.timeOfDay(e.at);
         h.time.setText(t.isEmpty() ? "" : t);
+        // 强度标签
+        String intensityLabel = IntensityText.of(e.intensityLevel, e.intensityPercent);
+        if (!intensityLabel.isEmpty()) {
+            h.intensity.setText(intensityLabel);
+            h.intensity.setVisibility(View.VISIBLE);
+        } else {
+            h.intensity.setVisibility(View.GONE);
+        }
         if (e.note != null && !e.note.isEmpty()) {
             h.note.setText(e.note);
             h.note.setVisibility(View.VISIBLE);
@@ -64,13 +82,14 @@ public class DayEntriesAdapter extends RecyclerView.Adapter<DayEntriesAdapter.VH
     @Override public int getItemCount() { return items.size(); }
 
     static class VH extends RecyclerView.ViewHolder {
-        final TextView emoji, mood, note, time;
+        final TextView emoji, mood, note, time, intensity;
         VH(@NonNull View v) {
             super(v);
             emoji = v.findViewById(R.id.tvEmoji);
             mood = v.findViewById(R.id.tvMood);
             note = v.findViewById(R.id.tvNote);
             time = v.findViewById(R.id.tvTime);
+            intensity = v.findViewById(R.id.tvIntensity);
         }
     }
 }
