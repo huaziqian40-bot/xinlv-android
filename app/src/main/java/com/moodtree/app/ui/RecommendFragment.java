@@ -246,7 +246,7 @@ public class RecommendFragment extends BaseFragment implements Refreshable {
                 LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(
                         LinearLayout.LayoutParams.MATCH_PARENT,
                         LinearLayout.LayoutParams.WRAP_CONTENT);
-                p.bottomMargin = dp(6);
+                p.bottomMargin = dp(2);
                 t.setLayoutParams(p);
                 card.addView(t);
             }
@@ -272,7 +272,7 @@ public class RecommendFragment extends BaseFragment implements Refreshable {
                         LinearLayout.LayoutParams.MATCH_PARENT,
                         LinearLayout.LayoutParams.WRAP_CONTENT);
                 p.topMargin = dp(2);
-                p.bottomMargin = dp(8);
+                p.bottomMargin = dp(4);
                 c.setLayoutParams(p);
                 card.addView(h);
                 card.addView(c);
@@ -335,7 +335,7 @@ public class RecommendFragment extends BaseFragment implements Refreshable {
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT);
-        lp.bottomMargin = dp(6);
+        lp.bottomMargin = dp(2);
         box.setLayoutParams(lp);
 
         TextView h = new TextView(requireContext());
@@ -346,7 +346,7 @@ public class RecommendFragment extends BaseFragment implements Refreshable {
         LinearLayout.LayoutParams hp = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT);
-        hp.bottomMargin = dp(6);
+        hp.bottomMargin = dp(3);
         h.setLayoutParams(hp);
         box.addView(h);
         return box;
@@ -360,7 +360,7 @@ public class RecommendFragment extends BaseFragment implements Refreshable {
         LinearLayout.LayoutParams rp = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT);
-        rp.bottomMargin = dp(3);
+        rp.bottomMargin = dp(1);
         row.setLayoutParams(rp);
         LinearLayout.LayoutParams np = new LinearLayout.LayoutParams(
                 0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f);
@@ -381,7 +381,7 @@ public class RecommendFragment extends BaseFragment implements Refreshable {
         b.setMinimumWidth(0);
         b.setMinHeight(0);
         b.setMinimumHeight(0);
-        b.setPadding(dp(8), dp(4), dp(8), dp(4));
+        b.setPadding(dp(8), dp(2), dp(8), dp(2));
         return b;
     }
 
