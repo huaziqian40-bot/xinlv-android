@@ -30,7 +30,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/** 心情日历：月历网格（每格显示当日心情 emoji）+ 某日详情列表 + 记心情弹窗。
+/** 心情日历：月历网格（顶部固定，每格显示当天最多次数的心情 emoji）+ 底部当天心情记录列表（可滚动）。
  *  支持月/周/年三视图切换。
  *  写库走 MainActivity.saveMoodEntry/deleteMoodEntry（自动 dirty + 同步）。
  *  游客：本地照常记，同步静默跳过。 */
@@ -38,9 +38,7 @@ public class CalendarFragment extends BaseFragment implements Refreshable {
 
     private GridView grid;
     private CalendarAdapter adapter;
-    private TextView tvMonth, tvSync;
-    private View dayPanel;
-    private TextView tvDayTitle;
+    private TextView tvMonth, tvSync, tvDayTitle;
     private DayEntriesAdapter dayAdapter;
     private YearMonth currentMonth;
     private LocalDate selectedDate;   // 当前展开的日期
@@ -63,7 +61,6 @@ public class CalendarFragment extends BaseFragment implements Refreshable {
         tvMonth = root.findViewById(R.id.tvMonth);
         tvSync = root.findViewById(R.id.tvSync);
         grid = root.findViewById(R.id.gridCalendar);
-        dayPanel = root.findViewById(R.id.dayPanel);
         tvDayTitle = root.findViewById(R.id.tvDayTitle);
 
         adapter = new CalendarAdapter(inflater);
@@ -77,9 +74,6 @@ public class CalendarFragment extends BaseFragment implements Refreshable {
         root.<Button>findViewById(R.id.btnNext).setOnClickListener(v -> {
             currentMonth = currentMonth.plusMonths(1);
             reload();
-        });
-        root.<Button>findViewById(R.id.btnCloseDay).setOnClickListener(v -> {
-            dayPanel.setVisibility(View.GONE);
         });
         root.<Button>findViewById(R.id.btnAddMood).setOnClickListener(v -> {
             String targetDate = selectedDate != null ? selectedDate.toString() : Dates.today();
@@ -130,6 +124,8 @@ public class CalendarFragment extends BaseFragment implements Refreshable {
         weekAnchor = LocalDate.now().with(DayOfWeek.MONDAY);
         yearNum = LocalDate.now().getYear();
         reload();
+        // 默认显示今天的记录
+        showDay(LocalDate.now());
         return root;
     }
 
@@ -152,42 +148,71 @@ public class CalendarFragment extends BaseFragment implements Refreshable {
         btnViewYear.setTextColor(active.equals("year") ? Theme.ACCENT : Theme.INK_SOFT);
     }
 
-    /** 重新读库：渲染当前月网格 + 若有选中日则刷新该日列表 */
+    /** 重新读库：渲染当前月网格（每格显示当天最多次的心情 emoji）+ 刷新底部列表 */
     public void reload() {
         if (currentMonth == null || !isAdded()) return;
         Bg.run(() -> {
             String prefix = Dates.monthPrefix(currentMonth);
             List<MoodEntry> monthEntries = app().db().moodDao().listForMonth(prefix);
-            Map<String, String> moodByDate = new HashMap<>();
+            // 统计每日期最多的心情，显示在格子中
+            // date -> {moodKey -> count}
+            Map<String, Map<String, Integer>> countByDate = new HashMap<>();
             for (MoodEntry e : monthEntries) {
-                if (!moodByDate.containsKey(e.date)) moodByDate.put(e.date, e.mood);
+                Map<String, Integer> counts = countByDate.get(e.date);
+                if (counts == null) {
+                    counts = new HashMap<>();
+                    countByDate.put(e.date, counts);
+                }
+                counts.put(e.mood, counts.getOrDefault(e.mood, 0) + 1);
+            }
+            Map<String, String> moodByDate = new HashMap<>();
+            for (Map.Entry<String, Map<String, Integer>> entry : countByDate.entrySet()) {
+                String bestMood = null;
+                int maxCount = 0;
+                for (Map.Entry<String, Integer> mc : entry.getValue().entrySet()) {
+                    if (mc.getValue() > maxCount) {
+                        maxCount = mc.getValue();
+                        bestMood = mc.getKey();
+                    }
+                }
+                if (bestMood != null) moodByDate.put(entry.getKey(), bestMood);
             }
             Bg.ui(() -> {
                 if (!isAdded()) return;
                 tvMonth.setText(Dates.monthLabel(currentMonth));
                 adapter.setMonth(currentMonth, moodByDate);
+                // 刷新底部列表（如果当前选中日期仍在当月）
+                if (selectedDate != null && currentMonth.equals(YearMonth.from(selectedDate))) {
+                    refreshDayEntries();
+                }
             });
         });
     }
 
-    /** 点格子：始终展开该日详情（有记录看记录，无记录看空列表 + 底部按钮记心情） */
+    /** 点格子：展开该日详情在底部（有记录看记录，无记录看空列表 + 底部按钮记心情） */
     private void onCellClick(CalendarAdapter.Cell cell) {
         if (cell == null) return;
         showDay(cell.date);
     }
 
-    /** 展开某日详情 */
+    /** 展开某日详情到底部区域 */
     private void showDay(LocalDate date) {
         selectedDate = date;
         String iso = date.toString();
         tvDayTitle.setText(Dates.display(iso));
-        dayPanel.setVisibility(View.VISIBLE);
         // 更新添加按钮文案
         Button btnAdd = getView() == null ? null : getView().findViewById(R.id.btnAddMood);
         if (btnAdd != null) {
             boolean isToday = date.equals(java.time.LocalDate.now());
             btnAdd.setText(isToday ? "＋ 记今天的心情" : "＋ 记 " + Dates.display(iso) + " 的心情");
         }
+        refreshDayEntries();
+    }
+
+    /** 刷新底部列表（当前 selectedDate） */
+    private void refreshDayEntries() {
+        if (selectedDate == null) return;
+        String iso = selectedDate.toString();
         Bg.run(() -> {
             List<MoodEntry> list = app().db().moodDao().listForDate(iso);
             Bg.ui(() -> { if (isAdded()) dayAdapter.set(list); });
@@ -351,12 +376,27 @@ public class CalendarFragment extends BaseFragment implements Refreshable {
 
         Bg.run(() -> {
             List<MoodEntry> entries = app().db().moodDao().listForRange(start, end);
-            // 每天取第一条为代表
-            Map<String, String> dayMood = new HashMap<>();
+            // 取每天最多次数的心情
+            Map<String, Map<String, Integer>> countByDate = new HashMap<>();
             for (MoodEntry e : entries) {
-                if (!dayMood.containsKey(e.date)) {
-                    dayMood.put(e.date, e.mood);
+                Map<String, Integer> counts = countByDate.get(e.date);
+                if (counts == null) {
+                    counts = new HashMap<>();
+                    countByDate.put(e.date, counts);
                 }
+                counts.put(e.mood, counts.getOrDefault(e.mood, 0) + 1);
+            }
+            Map<String, String> dayMood = new HashMap<>();
+            for (Map.Entry<String, Map<String, Integer>> entry : countByDate.entrySet()) {
+                String bestMood = null;
+                int maxCount = 0;
+                for (Map.Entry<String, Integer> mc : entry.getValue().entrySet()) {
+                    if (mc.getValue() > maxCount) {
+                        maxCount = mc.getValue();
+                        bestMood = mc.getKey();
+                    }
+                }
+                if (bestMood != null) dayMood.put(entry.getKey(), bestMood);
             }
 
             Bg.ui(() -> {
@@ -484,14 +524,13 @@ public class CalendarFragment extends BaseFragment implements Refreshable {
         return block;
     }
 
-    /** 年视图单个日期格子：有情绪时显示颜色圆点 */
+    /** 年视图单个日期格子：有情绪时显示 emoji */
     private View createYearCell(MoodMeta meta) {
         if (meta == null) {
             TextView empty = new TextView(requireContext());
             empty.setLayoutParams(new LinearLayout.LayoutParams(0, 24, 1f));
             return empty;
         }
-        // 用 emoji 代替颜色圆点（更直观）
         TextView dot = new TextView(requireContext());
         dot.setText(meta.emoji);
         dot.setTextSize(10);
