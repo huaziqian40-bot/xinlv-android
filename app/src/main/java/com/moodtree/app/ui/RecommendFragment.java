@@ -64,8 +64,13 @@ public class RecommendFragment extends BaseFragment implements Refreshable {
             chip.setText(m.emoji + " " + m.label);
             chip.setCheckable(true);
             int color = parseColor(m.color);
-            int lightColor = Color.argb(80, Color.red(color), Color.green(color), Color.blue(color));
-            chip.setChipBackgroundColor(android.content.res.ColorStateList.valueOf(lightColor));
+            // 用实色浅色代替透明色，避免 Material Chip 默认底色透出导致颜色发暗
+            // 未选中：85% 白色 + 15% 心情色（极浅）；选中：60% 白色 + 40% 心情色（中等）
+            int unselected = lighten(color, 0.85f);
+            int selected = lighten(color, 0.60f);
+            int[][] states = {{android.R.attr.state_checked}, {}};
+            int[] colors = {selected, unselected};
+            chip.setChipBackgroundColor(new android.content.res.ColorStateList(states, colors));
             chip.setTextColor(Theme.INK);
             chip.setChipStrokeWidth(0f);
             chip.setChipCornerRadius(dp(20));
@@ -424,6 +429,16 @@ public class RecommendFragment extends BaseFragment implements Refreshable {
 
     private static int parseColor(String hex) {
         try { return Color.parseColor(hex); } catch (Exception e) { return Color.GRAY; }
+    }
+
+    /** 将 color 与白色按比例混合，ratio 越大越接近白色 */
+    private static int lighten(int color, float ratio) {
+        int r = Color.red(color), g = Color.green(color), b = Color.blue(color);
+        int wr = 255, wg = 255, wb = 255;
+        return Color.rgb(
+                (int) (r * (1 - ratio) + wr * ratio),
+                (int) (g * (1 - ratio) + wg * ratio),
+                (int) (b * (1 - ratio) + wb * ratio));
     }
 
     /** 深色心情底色用浅字，浅色底用深字 */

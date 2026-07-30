@@ -49,7 +49,7 @@ public class CalendarFragment extends BaseFragment implements Refreshable {
 
     // 视图切换
     private View paneMonth, paneWeek, paneYear;
-    private Button btnViewMonth, btnViewWeek, btnViewYear;
+    private TextView btnViewMonth, btnViewWeek, btnViewYear;
     private LinearLayout weekGrid, yearGrid;
     private TextView tvWeekTitle, tvYearTitle;
     private LocalDate weekAnchor;   // 周视图锚点（周一）
@@ -71,11 +71,11 @@ public class CalendarFragment extends BaseFragment implements Refreshable {
         grid.setAdapter(adapter);
         adapter.setClickListener(this::onCellClick);
 
-        root.<Button>findViewById(R.id.btnPrev).setOnClickListener(v -> {
+        root.<TextView>findViewById(R.id.btnPrev).setOnClickListener(v -> {
             currentMonth = currentMonth.minusMonths(1);
             reload();
         });
-        root.<Button>findViewById(R.id.btnNext).setOnClickListener(v -> {
+        root.<TextView>findViewById(R.id.btnNext).setOnClickListener(v -> {
             currentMonth = currentMonth.plusMonths(1);
             reload();
         });
@@ -106,20 +106,20 @@ public class CalendarFragment extends BaseFragment implements Refreshable {
         btnViewYear.setOnClickListener(v -> switchView("year"));
 
         // 周导航
-        root.<Button>findViewById(R.id.btnWeekPrev).setOnClickListener(v -> {
+        root.<TextView>findViewById(R.id.btnWeekPrev).setOnClickListener(v -> {
             weekAnchor = weekAnchor.minusDays(7);
             renderWeek();
         });
-        root.<Button>findViewById(R.id.btnWeekNext).setOnClickListener(v -> {
+        root.<TextView>findViewById(R.id.btnWeekNext).setOnClickListener(v -> {
             weekAnchor = weekAnchor.plusDays(7);
             renderWeek();
         });
         // 年导航
-        root.<Button>findViewById(R.id.btnYearPrev).setOnClickListener(v -> {
+        root.<TextView>findViewById(R.id.btnYearPrev).setOnClickListener(v -> {
             yearNum--;
             renderYear();
         });
-        root.<Button>findViewById(R.id.btnYearNext).setOnClickListener(v -> {
+        root.<TextView>findViewById(R.id.btnYearNext).setOnClickListener(v -> {
             yearNum++;
             renderYear();
         });
