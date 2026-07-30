@@ -262,14 +262,17 @@
 
     <!-- ========= 下半部分：当天心情记录（可滚动，填充剩余空间） ========= -->
 
-    <LinearLayout
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1"
-        android:orientation="vertical"
-        android:background="@drawable/card_bg_bottom"
-        android:layout_margin="0dp"
-        android:layout_marginTop="-48dp">
+        android:layout_weight="1">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:background="@drawable/card_bg_bottom"
+            android:layout_marginTop="-48dp">
 
         <!-- 日期标题 -->
         <TextView
@@ -303,6 +306,7 @@
             android:padding="12dp"
             android:layout_margin="10dp"
             android:stateListAnimator="@null" />
-    </LinearLayout>
+        </LinearLayout>
+    </FrameLayout>
 
 </LinearLayout>
