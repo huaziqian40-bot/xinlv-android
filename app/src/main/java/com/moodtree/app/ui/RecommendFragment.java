@@ -64,8 +64,11 @@ public class RecommendFragment extends BaseFragment implements Refreshable {
             chip.setText(m.emoji + " " + m.label);
             chip.setCheckable(true);
             int color = parseColor(m.color);
-            chip.setChipBackgroundColor(android.content.res.ColorStateList.valueOf(color));
-            chip.setTextColor(darkerText(color));
+            int lightColor = Color.argb(80, Color.red(color), Color.green(color), Color.blue(color));
+            chip.setChipBackgroundColor(android.content.res.ColorStateList.valueOf(lightColor));
+            chip.setTextColor(Theme.INK);
+            chip.setChipStrokeWidth(0f);
+            chip.setChipCornerRadius(dp(20));
             chip.setOnClickListener(v -> select(m.key));
             chipMoods.addView(chip);
         }
