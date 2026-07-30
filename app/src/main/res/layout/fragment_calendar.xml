@@ -269,9 +269,7 @@
         android:orientation="vertical"
         android:background="@drawable/card_bg_bottom"
         android:layout_margin="0dp"
-        android:layout_marginTop="0dp"
-        android:translationY="-48dp"
-        android:clipChildren="false">
+        android:layout_marginTop="-48dp">
 
         <!-- 日期标题 -->
         <TextView
@@ -304,7 +302,6 @@
             android:textColor="@android:color/white"
             android:padding="12dp"
             android:layout_margin="10dp"
-            android:translationY="48dp"
             android:stateListAnimator="@null" />
     </LinearLayout>
 
