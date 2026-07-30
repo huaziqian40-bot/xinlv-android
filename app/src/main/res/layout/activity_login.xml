@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- 登录/注册页：卡片式表单，圆角输入框，风格按钮。
+     新样式：卡片风格、圆角、柔和阴影 -->
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -10,23 +12,24 @@
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:gravity="center_horizontal"
-        android:padding="32dp">
+        android:padding="24dp">
 
+        <!-- Logo + 品牌 -->
         <ImageView
-            android:layout_width="96dp"
-            android:layout_height="96dp"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
             android:src="@drawable/logo"
             android:contentDescription="心履"
-            android:layout_marginTop="24dp" />
+            android:layout_marginTop="20dp" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="心履"
-            android:textSize="26sp"
+            android:textSize="24sp"
             android:textStyle="bold"
             android:textColor="@color/ink"
-            android:layout_marginTop="8dp" />
+            android:layout_marginTop="6dp" />
 
         <TextView
             android:layout_width="wrap_content"
@@ -34,120 +37,148 @@
             android:text="把心情种下，让它慢慢发芽"
             android:textSize="13sp"
             android:textColor="@color/ink_soft"
-            android:layout_marginBottom="20dp" />
+            android:layout_marginBottom="24dp" />
 
-        <!-- 登录 / 注册 切换 -->
+        <!-- 表单卡片 -->
         <LinearLayout
-            android:id="@+id/tabs"
-            android:layout_width="wrap_content"
+            android:id="@+id/content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginBottom="20dp">
+            android:orientation="vertical"
+            android:background="@drawable/card_bg"
+            android:padding="20dp">
+
+            <!-- 登录 / 注册 切换 -->
+            <LinearLayout
+                android:id="@+id/tabs"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center"
+                android:layout_marginBottom="20dp">
+
+                <Button
+                    android:id="@+id/btnTabLogin"
+                    android:layout_width="0dp"
+                    android:layout_height="40dp"
+                    android:layout_weight="1"
+                    android:text="登录"
+                    android:textSize="14sp"
+                    android:minWidth="0dp"
+                    android:minHeight="0dp"
+                    android:padding="0dp"
+                    android:stateListAnimator="@null" />
+
+                <Button
+                    android:id="@+id/btnTabRegister"
+                    android:layout_width="0dp"
+                    android:layout_height="40dp"
+                    android:layout_weight="1"
+                    android:text="注册"
+                    android:textSize="14sp"
+                    android:minWidth="0dp"
+                    android:minHeight="0dp"
+                    android:padding="0dp"
+                    android:stateListAnimator="@null" />
+            </LinearLayout>
+
+            <EditText
+                android:id="@+id/etUsername"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="账号"
+                android:inputType="text"
+                android:maxLines="1"
+                android:background="@drawable/input_bg"
+                android:padding="14dp"
+                android:textSize="14sp"
+                android:layout_marginBottom="12dp" />
+
+            <EditText
+                android:id="@+id/etPassword"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="密码"
+                android:inputType="textPassword"
+                android:maxLines="1"
+                android:background="@drawable/input_bg"
+                android:padding="14dp"
+                android:textSize="14sp"
+                android:layout_marginBottom="12dp" />
+
+            <EditText
+                android:id="@+id/etPassword2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="再输一遍密码"
+                android:inputType="textPassword"
+                android:maxLines="1"
+                android:background="@drawable/input_bg"
+                android:padding="14dp"
+                android:textSize="14sp"
+                android:visibility="gone" />
+
+            <LinearLayout
+                android:id="@+id/agreeRow"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:visibility="gone"
+                android:layout_marginTop="4dp"
+                android:layout_marginBottom="12dp">
+
+                <CheckBox
+                    android:id="@+id/cbAgree"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="我已阅读并同意"
+                    android:textColor="@color/ink"
+                    android:textSize="13sp" />
+
+                <TextView
+                    android:id="@+id/tvDisclaimer"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="《免责声明》"
+                    android:textColor="@color/accent_d"
+                    android:textSize="13sp"
+                    android:padding="4dp" />
+            </LinearLayout>
 
             <Button
-                android:id="@+id/btnTabLogin"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="登录"
-                android:minWidth="110dp" />
-
-            <Button
-                android:id="@+id/btnTabRegister"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="注册"
-                android:minWidth="110dp" />
-        </LinearLayout>
-
-        <EditText
-            android:id="@+id/etUsername"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="账号"
-            android:inputType="text"
-            android:maxLines="1"
-            android:background="@android:color/white"
-            android:padding="14dp"
-            android:layout_marginBottom="12dp" />
-
-        <EditText
-            android:id="@+id/etPassword"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="密码"
-            android:inputType="textPassword"
-            android:maxLines="1"
-            android:background="@android:color/white"
-            android:padding="14dp"
-            android:layout_marginBottom="12dp" />
-
-        <EditText
-            android:id="@+id/etPassword2"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="再输一遍密码"
-            android:inputType="textPassword"
-            android:maxLines="1"
-            android:background="@android:color/white"
-            android:padding="14dp"
-            android:visibility="gone" />
-
-        <LinearLayout
-            android:id="@+id/agreeRow"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:visibility="gone"
-            android:layout_marginBottom="12dp">
-
-            <CheckBox
-                android:id="@+id/cbAgree"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
+                android:id="@+id/btnSubmit"
+                android:layout_width="match_parent"
+                android:layout_height="44dp"
+                android:text="登 录"
+                android:textSize="15sp"
+                android:background="@drawable/btn_primary"
+                android:textColor="@android:color/white"
+                android:stateListAnimator="@null" />
 
             <TextView
-                android:layout_width="wrap_content"
+                android:id="@+id/tvStatus"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="我已阅读并同意"
-                android:textColor="@color/ink"
-                android:textSize="13sp" />
-
-            <TextView
-                android:id="@+id/tvDisclaimer"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="《免责声明》"
-                android:textColor="@color/accent_d"
+                android:gravity="center"
+                android:textColor="@color/ink_soft"
                 android:textSize="13sp"
-                android:padding="4dp" />
+                android:layout_marginTop="12dp" />
         </LinearLayout>
 
-        <Button
-            android:id="@+id/btnSubmit"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="登 录"
-            android:textSize="16sp"
-            android:padding="14dp" />
-
-        <TextView
-            android:id="@+id/tvStatus"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:textColor="@color/ink_soft"
-            android:textSize="13sp"
-            android:layout_marginTop="12dp" />
-
+        <!-- 游客模式入口 -->
         <TextView
             android:id="@+id/tvGuest"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="不想注册？先随便逛逛（游客模式）"
-            android:textColor="@color/accent_d"
-            android:textSize="13sp"
-            android:padding="12dp"
+            android:text="不想注册？先随便逛逛"
+            android:textColor="@color/accent"
+            android:textSize="14sp"
+            android:padding="14dp"
             android:layout_marginTop="16dp" />
 
         <TextView
@@ -156,7 +187,8 @@
             android:text="游客的数据只保存在这台设备，登录后自动同步到云端"
             android:textColor="@color/ink_soft"
             android:textSize="11sp"
-            android:gravity="center" />
+            android:gravity="center"
+            android:paddingHorizontal="16dp" />
 
     </LinearLayout>
 </ScrollView>

@@ -5,6 +5,9 @@ import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.os.Bundle;
 import android.view.View;
+import android.view.Window;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.SeekBar;
@@ -203,8 +206,15 @@ public class MoodDialogFragment extends DialogFragment {
         // 在 onStart 里把窗口拉宽到屏幕的 92%（onCreateDialog 阶段设置无效，会被系统布局覆盖）。
         Dialog d = getDialog();
         if (d != null && d.getWindow() != null) {
-            int w = (int) (getResources().getDisplayMetrics().widthPixels * 0.92);
-            d.getWindow().setLayout(w, android.view.ViewGroup.LayoutParams.WRAP_CONTENT);
+            Window w = d.getWindow();
+            int width = (int) (getResources().getDisplayMetrics().widthPixels * 0.92);
+            w.setLayout(width, android.view.ViewGroup.LayoutParams.WRAP_CONTENT);
+            // 弹窗进入动画：缩放淡入
+            w.setWindowAnimations(android.R.style.Animation_Dialog);
+            // 手动播放缩放淡入动画
+            View content = w.getDecorView();
+            Animation anim = AnimationUtils.loadAnimation(getContext(), R.anim.scale_in);
+            content.startAnimation(anim);
         }
     }
 }

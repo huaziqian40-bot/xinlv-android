@@ -1,5 +1,6 @@
 package com.moodtree.app.ui;
 
+import android.graphics.drawable.GradientDrawable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -106,12 +107,20 @@ public class CalendarAdapter extends BaseAdapter {
         }
 
         // 选中/今天背景
-        convertView.setBackgroundColor(Theme.CARD);
+        GradientDrawable gd = new GradientDrawable();
+        gd.setColor(Theme.CARD);
+        gd.setCornerRadius(dp(6));
+        gd.setStroke(dp(1), c.isToday ? Theme.ACCENT : Theme.DIVIDER);
+        convertView.setBackground(gd);
         convertView.setEnabled(true);
         convertView.setClickable(true);
         convertView.setOnClickListener(v -> {
             if (clickListener != null) clickListener.onClick(c);
         });
         return convertView;
+    }
+
+    private int dp(int v) {
+        return (int) (v * inflater.getContext().getResources().getDisplayMetrics().density + 0.5f);
     }
 }

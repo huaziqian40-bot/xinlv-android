@@ -10,6 +10,8 @@ import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -202,6 +204,7 @@ public class RecommendFragment extends BaseFragment implements Refreshable {
         }
         tvState.setText("给「" + m.label + "」的你" + (offline ? "（离线缓存内容）" : ""));
 
+        int delay = 0;
         if (songs != null && songs.size() > 0) {
             LinearLayout card = card("🎵 听点音乐");
             for (JsonElement el : songs) {
@@ -222,6 +225,7 @@ public class RecommendFragment extends BaseFragment implements Refreshable {
                 card.addView(row);
             }
             resultBox.addView(card);
+            animateIn(card, delay++);
         }
 
         if (acts != null && acts.size() > 0) {
@@ -239,6 +243,7 @@ public class RecommendFragment extends BaseFragment implements Refreshable {
                 card.addView(t);
             }
             resultBox.addView(card);
+            animateIn(card, delay++);
         }
 
         // 服务端规则：负面/中性心情没有小知识（tips 为空数组），空卡不能渲染，否则只见标题不见内容
@@ -272,6 +277,7 @@ public class RecommendFragment extends BaseFragment implements Refreshable {
                 }
             }
             resultBox.addView(card);
+            animateIn(card, delay++);
         }
 
         // 即时小练习（负面/中性心情，服务端 practice 字段；与网页端结果页一致）
@@ -283,6 +289,7 @@ public class RecommendFragment extends BaseFragment implements Refreshable {
             t.setTextSize(14);
             card.addView(t);
             resultBox.addView(card);
+            animateIn(card, delay++);
         }
 
         if (hasVideo) {
@@ -292,16 +299,29 @@ public class RecommendFragment extends BaseFragment implements Refreshable {
             link.setOnClickListener(view -> openBrowser(v.get("url").getAsString()));
             card.addView(link);
             resultBox.addView(card);
+            animateIn(card, delay++);
         }
+    }
+
+    /** 卡片淡入动画（带递增延迟，依次弹出） */
+    private void animateIn(View v, int delay) {
+        v.setAlpha(0f);
+        v.setTranslationY(dp(20));
+        v.animate()
+                .alpha(1f)
+                .translationY(0)
+                .setDuration(300)
+                .setStartDelay(delay * 120)
+                .start();
     }
 
     // ---------- 视图小工具 ----------
 
-    /** 一张卡片：标题 + 内容容器，带主题背景与内边距 */
+    /** 一张卡片：标题 + 内容容器，带 card_bg drawable 背景 */
     private LinearLayout card(String title) {
         LinearLayout box = new LinearLayout(requireContext());
         box.setOrientation(LinearLayout.VERTICAL);
-        box.setBackgroundColor(Theme.CARD);
+        box.setBackgroundResource(R.drawable.card_bg);
         int pad = dp(16);
         box.setPadding(pad, pad, pad, pad);
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(

@@ -26,13 +26,15 @@ class IntensityText {
     }
 }
 
-/** 某日心情记录列表适配器。长按一条弹删除确认（走墓碑 + dirty）。 */
+/** 某日心情记录列表适配器。长按一条弹删除确认（走墓碑 + dirty）。
+ *  带 fade-in 动画。 */
 public class DayEntriesAdapter extends RecyclerView.Adapter<DayEntriesAdapter.VH> {
 
     public interface OnEntryLongClick { void onLongClick(MoodEntry e); }
 
     private final List<MoodEntry> items = new ArrayList<>();
     private final OnEntryLongClick longClick;
+    private int lastAnimated = -1;
 
     public DayEntriesAdapter(OnEntryLongClick longClick) {
         this.longClick = longClick;
@@ -41,6 +43,7 @@ public class DayEntriesAdapter extends RecyclerView.Adapter<DayEntriesAdapter.VH
     public void set(List<MoodEntry> list) {
         items.clear();
         items.addAll(list);
+        lastAnimated = -1;
         notifyDataSetChanged();
     }
 
@@ -77,6 +80,20 @@ public class DayEntriesAdapter extends RecyclerView.Adapter<DayEntriesAdapter.VH
             if (longClick != null) longClick.onLongClick(e);
             return true;
         });
+
+        // 动画：新出现的 item 执行淡入 + 上滑
+        if (position > lastAnimated) {
+            float density = h.itemView.getContext().getResources().getDisplayMetrics().density;
+            h.itemView.setAlpha(0f);
+            h.itemView.setTranslationY(20 * density);
+            h.itemView.animate()
+                    .alpha(1f)
+                    .translationY(0)
+                    .setDuration(300)
+                    .setStartDelay(position * 80)
+                    .start();
+            lastAnimated = position;
+        }
     }
 
     @Override public int getItemCount() { return items.size(); }

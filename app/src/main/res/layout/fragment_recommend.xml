@@ -1,34 +1,51 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- 推荐页：心情选择条 + 结果区（音乐/小行动/小知识/视频卡）。可滚动。 -->
+<!-- 推荐页：页面标题 + 心情选择条 + 结果区（音乐/小行动/小知识/视频卡）
+     新样式：卡片风格、圆角、柔和阴影 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:background="@color/bg">
 
-    <TextView
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:orientation="vertical"
         android:padding="16dp"
-        android:text="今日推荐"
-        android:textColor="@color/ink"
-        android:textSize="20sp"
-        android:textStyle="bold" />
+        android:paddingBottom="4dp">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="今日推荐"
+            android:textColor="@color/ink"
+            android:textSize="22sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="选一个心情，给你一些陪伴"
+            android:textColor="@color/ink_soft"
+            android:textSize="13sp"
+            android:layout_marginTop="2dp" />
+    </LinearLayout>
 
     <com.google.android.material.chip.ChipGroup
         android:id="@+id/chipMoods"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:paddingHorizontal="12dp" />
+        android:paddingHorizontal="12dp"
+        android:paddingBottom="8dp" />
 
     <TextView
         android:id="@+id/tvState"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="16dp"
-        android:text="选一个心情，给你一些陪伴"
+        android:paddingHorizontal="16dp"
+        android:paddingBottom="8dp"
         android:textColor="@color/ink_soft"
-        android:textSize="14sp" />
+        android:textSize="13sp" />
 
     <ScrollView
         android:layout_width="match_parent"

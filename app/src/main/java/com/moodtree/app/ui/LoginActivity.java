@@ -1,9 +1,13 @@
 package com.moodtree.app.ui;
 
 import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
@@ -77,6 +81,19 @@ public class LoginActivity extends AppCompatActivity {
         });
 
         setMode(false);
+
+        // 表单内容淡入动画
+        View content = findViewById(R.id.content);
+        if (content != null) {
+            content.setAlpha(0f);
+            content.setTranslationY(dp(30));
+            content.animate()
+                    .alpha(1f)
+                    .translationY(0)
+                    .setDuration(400)
+                    .setStartDelay(100)
+                    .start();
+        }
     }
 
     private void setMode(boolean register) {
@@ -90,13 +107,17 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void styleTab(Button b, boolean active) {
+        GradientDrawable gd = new GradientDrawable();
+        gd.setCornerRadius(dp(10));
         if (active) {
-            b.setBackgroundColor(Theme.ACCENT);
+            gd.setColor(Theme.ACCENT);
             b.setTextColor(0xFFFFFFFF);
         } else {
-            b.setBackgroundColor(0x00000000);
+            gd.setColor(0x00000000);
             b.setTextColor(Theme.INK_SOFT);
         }
+        gd.setStroke(dp(1), active ? Theme.ACCENT : Theme.DIVIDER);
+        b.setBackground(gd);
     }
 
     private void submit() {
@@ -141,6 +162,10 @@ public class LoginActivity extends AppCompatActivity {
 
     private void applyThemeToViews() {
         findViewById(android.R.id.content).setBackgroundColor(Theme.BG);
+    }
+
+    private int dp(int v) {
+        return (int) (v * getResources().getDisplayMetrics().density + 0.5f);
     }
 
     @Override

@@ -1,10 +1,14 @@
 package com.moodtree.app.ui;
 
 import android.app.AlertDialog;
+import android.graphics.Color;
+import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.GridView;
 import android.widget.LinearLayout;
@@ -134,9 +138,28 @@ public class CalendarFragment extends BaseFragment implements Refreshable {
 
     /** 切换到月/周/年视图 */
     private void switchView(String view) {
-        paneMonth.setVisibility(view.equals("month") ? View.VISIBLE : View.GONE);
-        paneWeek.setVisibility(view.equals("week") ? View.VISIBLE : View.GONE);
-        paneYear.setVisibility(view.equals("year") ? View.VISIBLE : View.GONE);
+        View showPane, hidePane;
+        if (view.equals("month")) {
+            showPane = paneMonth;
+            hidePane = paneWeek.getVisibility() == View.VISIBLE ? paneWeek : paneYear;
+        } else if (view.equals("week")) {
+            showPane = paneWeek;
+            hidePane = paneMonth.getVisibility() == View.VISIBLE ? paneMonth : paneYear;
+        } else {
+            showPane = paneYear;
+            hidePane = paneMonth.getVisibility() == View.VISIBLE ? paneMonth : paneWeek;
+        }
+
+        // 隐藏旧视图：淡出
+        Animation fadeOut = AnimationUtils.loadAnimation(requireContext(), R.anim.fade_out);
+        hidePane.startAnimation(fadeOut);
+        hidePane.setVisibility(View.GONE);
+
+        // 显示新视图：淡入
+        Animation fadeIn = AnimationUtils.loadAnimation(requireContext(), R.anim.fade_in);
+        showPane.startAnimation(fadeIn);
+        showPane.setVisibility(View.VISIBLE);
+
         updateTabActive(view);
         if (view.equals("week")) renderWeek();
         if (view.equals("year")) renderYear();
@@ -434,7 +457,13 @@ public class CalendarFragment extends BaseFragment implements Refreshable {
     private View createMonthBlock(int year, int month, Map<String, String> dayMood) {
         LinearLayout block = new LinearLayout(requireContext());
         block.setOrientation(LinearLayout.VERTICAL);
-        block.setBackgroundColor(Theme.CARD);
+        GradientDrawable gd = new GradientDrawable();
+        gd.setColor(Theme.CARD);
+        gd.setCornerRadius(dp(8));
+        gd.setStroke(dp(1), Theme.DIVIDER);
+        block.setBackground(gd);
+        int pad = dp(6);
+        block.setPadding(pad, pad, pad, pad);
 
         // 月份标题
         TextView title = new TextView(requireContext());
@@ -538,13 +567,7 @@ public class CalendarFragment extends BaseFragment implements Refreshable {
         return dot;
     }
 
-    /** 供外部更新同步状态条 */
-    public void setSyncText(String text) {
-        if (text == null || text.isEmpty()) {
-            tvSync.setVisibility(View.GONE);
-        } else {
-            tvSync.setText(text);
-            tvSync.setVisibility(View.VISIBLE);
-        }
+    private int dp(int v) {
+        return (int) (v * getResources().getDisplayMetrics().density + 0.5f);
     }
 }

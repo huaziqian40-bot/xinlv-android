@@ -43,6 +43,7 @@ public class MeFragment extends BaseFragment implements Refreshable {
     private LinearLayout contentBox;
     private TextView tvState;
     private boolean loaded;
+    private int animDelay;          // 递增动画延迟
 
     // 可选强调色（安卓没有 ColorPicker 控件，给一组常用色 + 自定义输入）
     private static final String[] ACCENT_SWATCHES = {
@@ -88,6 +89,7 @@ public class MeFragment extends BaseFragment implements Refreshable {
 
     private void renderGuest() {
         contentBox.removeAllViews();
+        animDelay = 0;
         // 本地统计涉及 Room 查库，挪到后台线程算，算完回主线程渲染
         Bg.run(() -> {
                     int streak = 0, total = 0;
@@ -137,6 +139,7 @@ public class MeFragment extends BaseFragment implements Refreshable {
     private void renderProfile(JsonObject p) {
         if (!isAdded()) return;
         contentBox.removeAllViews();
+        animDelay = 0;
         if (p == null) {
             tvState.setText("离线且暂无缓存数据，联网后这里会显示你的连胜和徽章");
             tvState.setVisibility(View.VISIBLE);
@@ -148,9 +151,12 @@ public class MeFragment extends BaseFragment implements Refreshable {
         // 头像 + 用户名
         View profileHeader = createProfileHeader(p);
         contentBox.addView(profileHeader);
+        animateIn(profileHeader, animDelay++);
 
         int streak = p.has("streak") ? p.get("streak").getAsInt() : 0;
-        contentBox.addView(streakCard(streak, "连续记录"));
+        View streakV = streakCard(streak, "连续记录");
+        contentBox.addView(streakV);
+        animateIn(streakV, animDelay++);
 
         int total = p.has("total_entries") ? p.get("total_entries").getAsInt() : 0;
         String joined = "";
@@ -164,6 +170,7 @@ public class MeFragment extends BaseFragment implements Refreshable {
         contentBox.addView(stat);
 
         TextView badgeTitle = text("徽章墙", Theme.INK, 16, true);
+        badgeTitle.setPadding(0, dp(4), 0, dp(8));
         contentBox.addView(badgeTitle);
 
         LinearLayout badgeGrid = new LinearLayout(requireContext());
@@ -188,8 +195,11 @@ public class MeFragment extends BaseFragment implements Refreshable {
             badgeGrid.addView(text("还没有徽章，从连续记录 3 天开始收集吧", Theme.INK_SOFT, 13));
         }
         contentBox.addView(badgeGrid);
+        animateIn(badgeGrid, animDelay++);
 
-        contentBox.addView(buildSettings(false));
+        View settings = buildSettings(false);
+        contentBox.addView(settings);
+        animateIn(settings, animDelay);
     }
 
     /** 连胜大卡：🔥 + N 天 + 说明 */
@@ -210,19 +220,28 @@ public class MeFragment extends BaseFragment implements Refreshable {
         return card;
     }
 
-    /** 一个徽章格 */
+    /** 一个徽章格 — 圆角卡片风格 */
     private View badgeCell(String emoji, String name, int days) {
         LinearLayout b = new LinearLayout(requireContext());
         b.setOrientation(LinearLayout.VERTICAL);
         b.setGravity(Gravity.CENTER);
-        b.setBackgroundColor(Theme.CARD);
         int pad = dp(14);
         b.setPadding(pad, pad, pad, pad);
         LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(0, lpW(), 1f);
         p.leftMargin = p.rightMargin = dp(4);
         b.setLayoutParams(p);
+
+        // 圆角背景
+        GradientDrawable gd = new GradientDrawable();
+        gd.setColor(Theme.CARD);
+        gd.setCornerRadius(dp(12));
+        gd.setStroke(dp(1), Theme.DIVIDER);
+        b.setBackground(gd);
+
         b.addView(text(emoji, Theme.INK, 28));
-        b.addView(text(name, Theme.INK, 13));
+        TextView nameTv = text(name, Theme.INK, 13);
+        nameTv.setPadding(0, dp(2), 0, 0);
+        b.addView(nameTv);
         b.addView(text("连续 " + days + " 天", Theme.INK_SOFT, 11));
         return b;
     }
@@ -242,7 +261,6 @@ public class MeFragment extends BaseFragment implements Refreshable {
             String id = preset[0], name = preset[1], preview = preset[2];
             Button b = new Button(requireContext());
             boolean active = id.equals(app().config().themeId());
-            // 文字前缀圆点 + 名称，圆点用预览色（名称用墨色或选中用强调色）
             b.setText("● " + name);
             b.setTextColor(active ? Theme.ACCENT : Theme.INK);
             b.setBackgroundColor(Color.TRANSPARENT);
@@ -268,9 +286,9 @@ public class MeFragment extends BaseFragment implements Refreshable {
             LinearLayout.LayoutParams dotLp = new LinearLayout.LayoutParams(sz, sz);
             dotLp.rightMargin = dp(8);
             dot.setLayoutParams(dotLp);
-            android.graphics.drawable.GradientDrawable gd = new android.graphics.drawable.GradientDrawable();
+            GradientDrawable gd = new GradientDrawable();
             gd.setColor(parseColor(hex));
-            gd.setShape(android.graphics.drawable.GradientDrawable.OVAL);
+            gd.setShape(GradientDrawable.OVAL);
             gd.setStroke(dp(2), app().config().accent().equalsIgnoreCase(hex) ? Theme.INK : 0x33000000);
             dot.setBackground(gd);
             dot.setOnClickListener(v -> applyTheme(app().config().themeId(), hex));
@@ -294,9 +312,10 @@ public class MeFragment extends BaseFragment implements Refreshable {
         EditText etServer = new EditText(requireContext());
         etServer.setText(app().config().serverBase());
         etServer.setInputType(InputType.TYPE_TEXT_VARIATION_URI);
-        etServer.setBackgroundColor(Theme.CARD);
+        etServer.setBackgroundResource(R.drawable.input_bg);
         etServer.setSingleLine(true);
         etServer.setTextSize(13);
+        etServer.setPadding(dp(10), dp(8), dp(10), dp(8));
         etServer.setLayoutParams(new LinearLayout.LayoutParams(0, lpW(), 1f));
         Button saveServer = primaryBtn("保存");
         saveServer.setOnClickListener(v -> {
@@ -325,7 +344,9 @@ public class MeFragment extends BaseFragment implements Refreshable {
             Button logout = new Button(requireContext());
             logout.setText("退出登录");
             logout.setTextColor(Theme.DANGER);
-            logout.setBackgroundColor(Color.TRANSPARENT);
+            logout.setBackgroundResource(R.drawable.btn_outline);
+            logout.setTextSize(14);
+            logout.setPadding(dp(20), dp(12), dp(20), dp(12));
             LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(lpM(), lpW());
             lp.topMargin = dp(16);
             logout.setLayoutParams(lp);
@@ -400,13 +421,22 @@ public class MeFragment extends BaseFragment implements Refreshable {
         avatarLp.rightMargin = dp(16);
         avatar.setLayoutParams(avatarLp);
 
+        // 圆形裁剪轮廓
+        GradientDrawable avatarBg = new GradientDrawable();
+        avatarBg.setShape(GradientDrawable.OVAL);
+        avatarBg.setColor(Theme.CARD);
+        avatarBg.setStroke(dp(2), Theme.DIVIDER);
+        avatar.setBackground(avatarBg);
+        avatar.setClipToOutline(true);
+        avatar.setScaleType(ImageView.ScaleType.CENTER_CROP);
+
         // 尝试加载头像
         String avatarUrl = p.has("avatar_url") && !p.get("avatar_url").isJsonNull()
                 ? p.get("avatar_url").getAsString() : null;
         if (avatarUrl != null && !avatarUrl.isEmpty()) {
             loadAvatar(avatar, avatarUrl);
         } else {
-            // 无头像：显示用户名首字
+            // 无头像时显示用户名首字背景
             avatar.setVisibility(View.GONE);
         }
 
@@ -449,16 +479,21 @@ public class MeFragment extends BaseFragment implements Refreshable {
         bitmap -> {
             if (bitmap != null) {
                 iv.setImageBitmap(bitmap);
-                // 圆形裁剪
-                GradientDrawable gd = new GradientDrawable();
-                gd.setShape(GradientDrawable.OVAL);
-                gd.setColor(Theme.CARD);
-                gd.setStroke(dp(2), Theme.DIVIDER);
-                iv.setClipToOutline(true);
-                iv.setBackground(gd);
             }
         },
         err -> { /* 头像加载失败，静默 */ });
+    }
+
+    /** 卡片淡入 + 上移动画 */
+    private void animateIn(View v, int delay) {
+        v.setAlpha(0f);
+        v.setTranslationY(dp(20));
+        v.animate()
+                .alpha(1f)
+                .translationY(0)
+                .setDuration(300)
+                .setStartDelay(delay * 120)
+                .start();
     }
 
     // ---------- 视图小工具 ----------
@@ -466,7 +501,7 @@ public class MeFragment extends BaseFragment implements Refreshable {
     private LinearLayout card() {
         LinearLayout box = new LinearLayout(requireContext());
         box.setOrientation(LinearLayout.VERTICAL);
-        box.setBackgroundColor(Theme.CARD);
+        box.setBackgroundResource(R.drawable.card_bg);
         int pad = dp(16);
         box.setPadding(pad, pad, pad, pad);
         box.setLayoutParams(lp(lpM(), lpW(), 0, 0, 0, dp(14)));
@@ -495,6 +530,13 @@ public class MeFragment extends BaseFragment implements Refreshable {
     private Button primaryBtn(String text) {
         Button b = new Button(requireContext());
         b.setText(text);
+        b.setBackgroundResource(R.drawable.btn_primary);
+        b.setTextColor(Color.WHITE);
+        b.setTextSize(15);
+        b.setMinWidth(0); b.setMinimumWidth(0);
+        b.setMinHeight(0); b.setMinimumHeight(0);
+        b.setPadding(dp(20), dp(12), dp(20), dp(12));
+        b.setLayoutParams(lp(lpM(), lpW()));
         return b;
     }
 
@@ -512,6 +554,9 @@ public class MeFragment extends BaseFragment implements Refreshable {
         return b;
     }
 
+    private LinearLayout.LayoutParams lp(int w, int h) {
+        return new LinearLayout.LayoutParams(w, h);
+    }
     private LinearLayout.LayoutParams lp(int w, int h, int left, int top, int right, int bottom) {
         LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(w, h);
         p.setMargins(left, top, right, bottom);

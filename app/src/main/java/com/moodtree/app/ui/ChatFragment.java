@@ -215,6 +215,12 @@ public class ChatFragment extends BaseFragment implements Refreshable {
                 h.row.setGravity(Gravity.START);
                 setSidePadding(h.row, 0, dp(60));
             }
+
+            // 新气泡淡入动画
+            if (position == messages.size() - 1) {
+                h.itemView.setAlpha(0f);
+                h.itemView.animate().alpha(1f).setDuration(300).start();
+            }
         }
 
         @Override public int getItemCount() { return messages.size(); }

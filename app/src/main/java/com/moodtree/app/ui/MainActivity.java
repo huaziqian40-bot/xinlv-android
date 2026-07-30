@@ -73,6 +73,8 @@ public class MainActivity extends AppCompatActivity {
         }
 
         BottomNavigationView nav = findViewById(R.id.bottomNav);
+        // 页签顺序（用于确定切换方向）
+        final int[] TAB_ORDER = {R.id.nav_calendar, R.id.nav_recommend, R.id.nav_chat, R.id.nav_game, R.id.nav_me};
         nav.setOnItemSelectedListener(item -> {
             Fragment target;
             int id = item.getItemId();
@@ -82,8 +84,30 @@ public class MainActivity extends AppCompatActivity {
             else if (id == R.id.nav_me) target = meFrag;
             else target = calendarFrag;
             if (target == active) return true;
-            fm.beginTransaction()
-                    .hide(active).show(target).commit();
+
+            // 计算切换方向：右滑（新页在右边→新页从右滑入，旧页向左滑出）
+            int oldIdx = -1, newIdx = -1;
+            int curId = -1;
+            if (active == calendarFrag) curId = R.id.nav_calendar;
+            else if (active == recommendFrag) curId = R.id.nav_recommend;
+            else if (active == chatFrag) curId = R.id.nav_chat;
+            else if (active == gameFrag) curId = R.id.nav_game;
+            else if (active == meFrag) curId = R.id.nav_me;
+            for (int i = 0; i < TAB_ORDER.length; i++) {
+                if (TAB_ORDER[i] == curId) oldIdx = i;
+                if (TAB_ORDER[i] == id) newIdx = i;
+            }
+            boolean forward = newIdx > oldIdx;
+
+            if (forward) {
+                fm.beginTransaction()
+                        .setCustomAnimations(R.anim.slide_in_right, R.anim.slide_out_left)
+                        .hide(active).show(target).commit();
+            } else {
+                fm.beginTransaction()
+                        .setCustomAnimations(R.anim.slide_in_left, R.anim.slide_out_right)
+                        .hide(active).show(target).commit();
+            }
             active = target;
             // 切到某页时让它刷新数据（联网后可能已变化）
             if (target instanceof Refreshable) ((Refreshable) target).refresh();

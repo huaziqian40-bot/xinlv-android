@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- 日历单个日期格：正方形（1:1），日期数字右上角 + 心情 emoji 居中。点击展开该日详情。 -->
+<!-- 日历单个日期格：正方形（1:1），日期数字右上角 + 心情 emoji 居中。点击展开该日详情。
+     新样式：卡片风格、圆角 -->
 <com.moodtree.app.ui.SquareFrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/cell"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/card"
+    android:background="@drawable/card_bg"
     android:clickable="true"
     android:focusable="true">
 
