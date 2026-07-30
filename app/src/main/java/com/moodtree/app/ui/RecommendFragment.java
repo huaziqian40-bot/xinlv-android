@@ -81,7 +81,8 @@ public class RecommendFragment extends BaseFragment implements Refreshable {
         stopPlayer();
     }
 
-    private void select(String mood) {
+    /** 选中某心情并加载推荐 */
+    public void select(String mood) {
         selectedMood = mood;
         stopPlayer();
         MoodMeta m = MoodMeta.of(mood);

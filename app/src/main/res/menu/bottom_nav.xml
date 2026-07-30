@@ -13,6 +13,10 @@
         android:icon="@drawable/ic_chat"
         android:title="树洞" />
     <item
+        android:id="@+id/nav_game"
+        android:icon="@drawable/ic_game"
+        android:title="游戏" />
+    <item
         android:id="@+id/nav_me"
         android:icon="@drawable/ic_me"
         android:title="我的" />

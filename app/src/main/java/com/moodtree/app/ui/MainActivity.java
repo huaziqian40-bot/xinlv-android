@@ -22,6 +22,7 @@ public class MainActivity extends AppCompatActivity {
     private CalendarFragment calendarFrag;
     private RecommendFragment recommendFrag;
     private ChatFragment chatFrag;
+    private GameFragment gameFrag;
     private MeFragment meFrag;
     private Fragment active;
 
@@ -47,9 +48,11 @@ public class MainActivity extends AppCompatActivity {
             calendarFrag = new CalendarFragment();
             recommendFrag = new RecommendFragment();
             chatFrag = new ChatFragment();
+            gameFrag = new GameFragment();
             meFrag = new MeFragment();
             fm.beginTransaction()
                     .add(R.id.fragmentContainer, meFrag, "me").hide(meFrag)
+                    .add(R.id.fragmentContainer, gameFrag, "game").hide(gameFrag)
                     .add(R.id.fragmentContainer, chatFrag, "chat").hide(chatFrag)
                     .add(R.id.fragmentContainer, recommendFrag, "recommend").hide(recommendFrag)
                     .add(R.id.fragmentContainer, calendarFrag, "calendar")
@@ -61,9 +64,10 @@ public class MainActivity extends AppCompatActivity {
             calendarFrag = (CalendarFragment) fm.findFragmentByTag("calendar");
             recommendFrag = (RecommendFragment) fm.findFragmentByTag("recommend");
             chatFrag = (ChatFragment) fm.findFragmentByTag("chat");
+            gameFrag = (GameFragment) fm.findFragmentByTag("game");
             meFrag = (MeFragment) fm.findFragmentByTag("me");
             active = calendarFrag;
-            for (Fragment f : new Fragment[]{recommendFrag, chatFrag, meFrag}) {
+            for (Fragment f : new Fragment[]{recommendFrag, chatFrag, gameFrag, meFrag}) {
                 if (f != null && !f.isHidden()) { active = f; break; }
             }
         }
@@ -74,6 +78,7 @@ public class MainActivity extends AppCompatActivity {
             int id = item.getItemId();
             if (id == R.id.nav_recommend) target = recommendFrag;
             else if (id == R.id.nav_chat) target = chatFrag;
+            else if (id == R.id.nav_game) target = gameFrag;
             else if (id == R.id.nav_me) target = meFrag;
             else target = calendarFrag;
             if (target == active) return true;
@@ -88,6 +93,7 @@ public class MainActivity extends AppCompatActivity {
         int tabId = R.id.nav_calendar;
         if (active == recommendFrag) tabId = R.id.nav_recommend;
         else if (active == chatFrag) tabId = R.id.nav_chat;
+        else if (active == gameFrag) tabId = R.id.nav_game;
         else if (active == meFrag) tabId = R.id.nav_me;
         nav.setSelectedItemId(tabId);
         // recreate 恢复时，当前页的内存状态（已加载标记/消息列表）已随旧实例销毁，
@@ -225,4 +231,19 @@ public class MainActivity extends AppCompatActivity {
 
     /** 给 Fragment 拿 App 的便捷方法 */
     public App app() { return (App) getApplication(); }
+
+    /** 切换到推荐页并自动选中某心情（记心情后调用） */
+    public void switchToRecommend(String mood) {
+        if (recommendFrag == null) return;
+        BottomNavigationView nav = findViewById(R.id.bottomNav);
+        nav.setSelectedItemId(R.id.nav_recommend);
+        // 模拟点击推荐页签
+        androidx.fragment.app.FragmentManager fm = getSupportFragmentManager();
+        if (active != recommendFrag) {
+            fm.beginTransaction().hide(active).show(recommendFrag).commit();
+            active = recommendFrag;
+        }
+        // 延迟一点等页面切换完成再触发 select
+        findViewById(android.R.id.content).post(() -> recommendFrag.select(mood));
+    }
 }

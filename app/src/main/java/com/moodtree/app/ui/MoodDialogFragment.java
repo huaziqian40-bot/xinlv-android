@@ -161,6 +161,8 @@ public class MoodDialogFragment extends DialogFragment {
             ((MainActivity) requireActivity()).saveMoodEntry(e, () -> {
                 if (onSaved != null) onSaved.onSaved();
                 dismiss();
+                // 记心情后自动跳转到推荐页，展示该心情的推荐内容
+                ((MainActivity) requireActivity()).switchToRecommend(key);
             });
         });
 
