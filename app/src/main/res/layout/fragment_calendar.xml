@@ -8,7 +8,6 @@
     <!-- ========= 上半部分：日历网格（固定大小，不可滚动）= wrap_content 随正方形格子撑开 ========= -->
 
     <LinearLayout
-        android:background="@color/card"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical">
@@ -136,7 +135,7 @@
                 android:layout_height="wrap_content"
                 android:numColumns="7"
                 android:paddingHorizontal="8dp"
-                android:horizontalSpacing="1dp"
+                android:horizontalSpacing="2dp"
                 android:verticalSpacing="1dp" />
         </LinearLayout>
 
@@ -270,7 +269,7 @@
         android:orientation="vertical"
         android:background="@drawable/card_bg_bottom"
         android:layout_margin="0dp"
-        android:layout_marginTop="0dp">
+        android:layout_marginTop="-4dp">
 
         <!-- 日期标题 -->
         <TextView
