@@ -501,10 +501,10 @@ public class MeFragment extends BaseFragment implements Refreshable {
     private LinearLayout card() {
         LinearLayout box = new LinearLayout(requireContext());
         box.setOrientation(LinearLayout.VERTICAL);
-        box.setBackgroundResource(R.drawable.card_bg);
+        box.setBackgroundResource(R.drawable.card_bg_flat);
         int pad = dp(16);
         box.setPadding(pad, pad, pad, pad);
-        box.setLayoutParams(lp(lpM(), lpW(), 0, 0, 0, dp(14)));
+        box.setLayoutParams(lp(lpM(), lpW(), 0, 0, 0, dp(10)));
         return box;
     }
 

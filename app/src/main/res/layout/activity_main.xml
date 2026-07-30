@@ -43,5 +43,6 @@
         android:background="@drawable/card_bg"
         app:menu="@menu/bottom_nav"
         app:labelVisibilityMode="labeled"
-        android:elevation="8dp" />
+        android:elevation="0dp"
+        android:outlineProvider="none" />
 </LinearLayout>

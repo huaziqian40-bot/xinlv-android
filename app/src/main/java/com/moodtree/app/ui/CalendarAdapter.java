@@ -110,7 +110,9 @@ public class CalendarAdapter extends BaseAdapter {
         GradientDrawable gd = new GradientDrawable();
         gd.setColor(Theme.CARD);
         gd.setCornerRadius(dp(6));
-        gd.setStroke(dp(1), c.isToday ? Theme.ACCENT : Theme.DIVIDER);
+        if (c.isToday) {
+            gd.setStroke(dp(1), Theme.ACCENT);
+        }
         convertView.setBackground(gd);
         convertView.setEnabled(true);
         convertView.setClickable(true);

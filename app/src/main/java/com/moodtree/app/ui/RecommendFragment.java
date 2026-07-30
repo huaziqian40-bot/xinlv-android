@@ -329,13 +329,13 @@ public class RecommendFragment extends BaseFragment implements Refreshable {
     private LinearLayout card(String title) {
         LinearLayout box = new LinearLayout(requireContext());
         box.setOrientation(LinearLayout.VERTICAL);
-        box.setBackgroundResource(R.drawable.card_bg);
+        box.setBackgroundResource(R.drawable.card_bg_flat);
         int pad = dp(16);
         box.setPadding(pad, pad, pad, pad);
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT);
-        lp.bottomMargin = dp(14);
+        lp.bottomMargin = dp(10);
         box.setLayoutParams(lp);
 
         TextView h = new TextView(requireContext());
