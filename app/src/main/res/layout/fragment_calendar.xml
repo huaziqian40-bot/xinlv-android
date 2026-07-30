@@ -265,14 +265,24 @@
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1">
+        android:layout_weight="1"
+        android:background="@drawable/card_bg_bottom"
+        android:clipChildren="false">
 
+        <!-- 只向上延伸背景，不改变下边界 -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginTop="-48dp"
+            android:background="@color/card" />
+
+        <!-- 标题和记录向上移；按钮通过反向位移保持原位 -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="vertical"
-            android:background="@drawable/card_bg_bottom"
-            android:layout_marginTop="-48dp">
+            android:translationY="-48dp"
+            android:clipChildren="false">
 
         <!-- 日期标题 -->
         <TextView
@@ -305,6 +315,7 @@
             android:textColor="@android:color/white"
             android:padding="12dp"
             android:layout_margin="10dp"
+            android:translationY="48dp"
             android:stateListAnimator="@null" />
         </LinearLayout>
     </FrameLayout>
