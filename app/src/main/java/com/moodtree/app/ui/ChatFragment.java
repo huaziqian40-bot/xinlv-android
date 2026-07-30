@@ -58,6 +58,14 @@ public class ChatFragment extends BaseFragment implements Refreshable {
         themeBackground(root);
 
         rv = root.findViewById(R.id.rvMessages);
+        rv.addItemDecoration(new RecyclerView.ItemDecoration() {
+            @Override
+            public void getItemOffsets(@NonNull android.graphics.Rect outRect, @NonNull View view,
+                                       @NonNull RecyclerView parent, @NonNull RecyclerView.State state) {
+                outRect.top = dp(6);
+                outRect.bottom = dp(6);
+            }
+        });
         etInput = root.findViewById(R.id.etInput);
         btnSend = root.findViewById(R.id.btnSend);
         btnClear = root.findViewById(R.id.btnClear);
