@@ -3,7 +3,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="@color/bg">
+    android:background="@color/bg"
+    android:clipChildren="false">
 
     <!-- ========= 上半部分：日历网格（固定大小，不可滚动）= wrap_content 随正方形格子撑开 ========= -->
 
