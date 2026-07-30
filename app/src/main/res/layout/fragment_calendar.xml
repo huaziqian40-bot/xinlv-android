@@ -5,11 +5,10 @@
     android:orientation="vertical"
     android:background="@color/bg">
 
-    <!-- ========= 上半部分：日历网格（固定大小，不可滚动） ========= -->
+    <!-- ========= 上半部分：日历网格（固定大小，不可滚动）= wrap_content 随正方形格子撑开 ========= -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="0.38"
+        android:layout_height="wrap_content"
         android:orientation="vertical">
 
         <!-- 月份导航 -->
@@ -91,8 +90,7 @@
         <LinearLayout
             android:id="@+id/paneMonth"
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
+            android:layout_height="wrap_content"
             android:orientation="vertical">
 
             <!-- 星期表头 -->
@@ -111,11 +109,10 @@
             </LinearLayout>
 
             <!-- 日历网格 -->
-            <GridView
+            <com.moodtree.app.ui.SquareGridGridView
                 android:id="@+id/gridCalendar"
                 android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="1"
+                android:layout_height="wrap_content"
                 android:numColumns="7"
                 android:paddingHorizontal="8dp"
                 android:horizontalSpacing="2dp"
@@ -243,11 +240,11 @@
         </LinearLayout>
     </LinearLayout>
 
-    <!-- ========= 下半部分：当天心情记录（可滚动，不侵占日历位置） ========= -->
+    <!-- ========= 下半部分：当天心情记录（可滚动，填充剩余空间） ========= -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="0.62"
+        android:layout_weight="1"
         android:orientation="vertical"
         android:background="@color/card">
 
