@@ -2,6 +2,7 @@
 <!-- 推荐页：页面标题 + 心情选择条 + 结果区（音乐/小行动/小知识/视频卡）
      新样式：卡片风格、圆角、柔和阴影 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
@@ -36,7 +37,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:paddingHorizontal="12dp"
-        android:paddingBottom="4dp" />
+        android:paddingBottom="0dp"
+        app:chipSpacingVertical="0dp" />
 
     <TextView
         android:id="@+id/tvState"
