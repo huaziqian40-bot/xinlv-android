@@ -43,4 +43,8 @@ public interface MoodDao {
     /** 获取最新一条心情记录（非删除），用于情绪视觉叠色 */
     @Query("SELECT * FROM mood_entry WHERE deleted = 0 ORDER BY date DESC, at DESC LIMIT 1")
     MoodEntry getLatest();
+
+    /** 某天范围内所有记录（不含墓碑），按日期+时刻排序。用于年/周视图本地渲染。 */
+    @Query("SELECT * FROM mood_entry WHERE date >= :start AND date <= :end AND deleted = 0 ORDER BY date, at")
+    List<MoodEntry> listForRange(String start, String end);
 }

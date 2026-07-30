@@ -49,6 +49,12 @@ public class Dates {
         return t == null ? "" : t.toLocalTime().format(DateTimeFormatter.ofPattern("HH:mm"));
     }
 
+    /** 从 ISO 时间串解析出"从午夜开始的分钟数"(0~1439)，用于周视图纵向定位 */
+    public static int minutesOfDay(String at) {
+        OffsetDateTime t = parseDateTime(at);
+        return t == null ? 0 : t.getHour() * 60 + t.getMinute();
+    }
+
     /** YearMonth → "yyyy-MM" 前缀，给 listForMonth 的 LIKE 查询用 */
     public static String monthPrefix(YearMonth ym) {
         return ym.toString() + "-";   // YearMonth.toString() 形如 "2026-07"

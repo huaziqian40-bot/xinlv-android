@@ -7,6 +7,7 @@
 
     <!-- 月份导航 -->
     <LinearLayout
+        android:id="@+id/monthNav"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
@@ -44,6 +45,31 @@
             android:minHeight="0dp" />
     </LinearLayout>
 
+    <!-- 视图切换标签 -->
+    <LinearLayout
+        android:id="@+id/viewTabs"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:paddingBottom="8dp">
+
+        <Button
+            android:id="@+id/btnViewMonth"
+            style="@style/ViewTab"
+            android:text="月" />
+
+        <Button
+            android:id="@+id/btnViewWeek"
+            style="@style/ViewTab"
+            android:text="周" />
+
+        <Button
+            android:id="@+id/btnViewYear"
+            style="@style/ViewTab"
+            android:text="年" />
+    </LinearLayout>
+
     <!-- 同步状态条 -->
     <TextView
         android:id="@+id/tvSync"
@@ -55,38 +81,166 @@
         android:textSize="12sp"
         android:visibility="gone" />
 
-    <!-- 星期表头 -->
+    <!-- ========= 月视图 ========= -->
     <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:paddingHorizontal="8dp">
-        <TextView style="@style/WeekHeader" android:text="一" />
-        <TextView style="@style/WeekHeader" android:text="二" />
-        <TextView style="@style/WeekHeader" android:text="三" />
-        <TextView style="@style/WeekHeader" android:text="四" />
-        <TextView style="@style/WeekHeader" android:text="五" />
-        <TextView style="@style/WeekHeader" android:text="六" />
-        <TextView style="@style/WeekHeader" android:text="日" />
-    </LinearLayout>
-
-    <!-- 日历网格 -->
-    <GridView
-        android:id="@+id/gridCalendar"
+        android:id="@+id/paneMonth"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:numColumns="7"
-        android:paddingHorizontal="8dp"
-        android:horizontalSpacing="2dp"
-        android:verticalSpacing="2dp" />
+        android:orientation="vertical">
+
+        <!-- 星期表头 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingHorizontal="8dp">
+            <TextView style="@style/WeekHeader" android:text="一" />
+            <TextView style="@style/WeekHeader" android:text="二" />
+            <TextView style="@style/WeekHeader" android:text="三" />
+            <TextView style="@style/WeekHeader" android:text="四" />
+            <TextView style="@style/WeekHeader" android:text="五" />
+            <TextView style="@style/WeekHeader" android:text="六" />
+            <TextView style="@style/WeekHeader" android:text="日" />
+        </LinearLayout>
+
+        <!-- 日历网格 -->
+        <GridView
+            android:id="@+id/gridCalendar"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:numColumns="7"
+            android:paddingHorizontal="8dp"
+            android:horizontalSpacing="2dp"
+            android:verticalSpacing="2dp" />
+    </LinearLayout>
+
+    <!-- ========= 周视图 ========= -->
+    <LinearLayout
+        android:id="@+id/paneWeek"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:padding="8dp">
+
+            <Button
+                android:id="@+id/btnWeekPrev"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:text="‹"
+                android:textSize="22sp"
+                android:padding="0dp"
+                android:minWidth="0dp"
+                android:minHeight="0dp" />
+
+            <TextView
+                android:id="@+id/tvWeekTitle"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:textColor="@color/ink"
+                android:textSize="15sp"
+                android:textStyle="bold" />
+
+            <Button
+                android:id="@+id/btnWeekNext"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:text="›"
+                android:textSize="22sp"
+                android:padding="0dp"
+                android:minWidth="0dp"
+                android:minHeight="0dp" />
+        </LinearLayout>
+
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:paddingHorizontal="8dp">
+
+            <LinearLayout
+                android:id="@+id/weekGrid"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal" />
+        </ScrollView>
+    </LinearLayout>
+
+    <!-- ========= 年视图 ========= -->
+    <LinearLayout
+        android:id="@+id/paneYear"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:padding="8dp">
+
+            <Button
+                android:id="@+id/btnYearPrev"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:text="‹"
+                android:textSize="22sp"
+                android:padding="0dp"
+                android:minWidth="0dp"
+                android:minHeight="0dp" />
+
+            <TextView
+                android:id="@+id/tvYearTitle"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:textColor="@color/ink"
+                android:textSize="15sp"
+                android:textStyle="bold" />
+
+            <Button
+                android:id="@+id/btnYearNext"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:text="›"
+                android:textSize="22sp"
+                android:padding="0dp"
+                android:minWidth="0dp"
+                android:minHeight="0dp" />
+        </LinearLayout>
+
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:paddingHorizontal="12dp">
+
+            <LinearLayout
+                android:id="@+id/yearGrid"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+        </ScrollView>
+    </LinearLayout>
 
     <!-- 选中日期的记录列表 -->
     <LinearLayout
         android:id="@+id/dayPanel"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
+        android:layout_height="wrap_content"
         android:orientation="vertical"
         android:visibility="gone"
         android:background="@color/card">
@@ -120,10 +274,11 @@
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rvDayEntries"
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:maxHeight="220dp"
             android:paddingHorizontal="8dp"
-            android:paddingBottom="8dp" />
+            android:paddingBottom="8dp"
+            android:nestedScrollingEnabled="false" />
     </LinearLayout>
 
     <!-- 记心情按钮 -->

@@ -2,8 +2,11 @@ package com.moodtree.app.ui;
 
 import android.app.AlertDialog;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.Typeface;
+import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.text.InputType;
 import android.view.Gravity;
@@ -12,6 +15,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -140,6 +144,10 @@ public class MeFragment extends BaseFragment implements Refreshable {
             return;
         }
         tvState.setVisibility(View.GONE);
+
+        // 头像 + 用户名
+        View profileHeader = createProfileHeader(p);
+        contentBox.addView(profileHeader);
 
         int streak = p.has("streak") ? p.get("streak").getAsInt() : 0;
         contentBox.addView(streakCard(streak, "连续记录"));
@@ -377,6 +385,80 @@ public class MeFragment extends BaseFragment implements Refreshable {
         Intent i = new Intent(getActivity(), LoginActivity.class);
         i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(i);
+    }
+
+    /** 头像 + 用户名卡片，头像从服务器 avatar_url 加载 */
+    private View createProfileHeader(JsonObject p) {
+        LinearLayout card = card();
+        card.setOrientation(LinearLayout.HORIZONTAL);
+        card.setGravity(Gravity.CENTER_VERTICAL);
+
+        // 头像
+        ImageView avatar = new ImageView(requireContext());
+        int avatarSize = dp(56);
+        LinearLayout.LayoutParams avatarLp = new LinearLayout.LayoutParams(avatarSize, avatarSize);
+        avatarLp.rightMargin = dp(16);
+        avatar.setLayoutParams(avatarLp);
+
+        // 尝试加载头像
+        String avatarUrl = p.has("avatar_url") && !p.get("avatar_url").isJsonNull()
+                ? p.get("avatar_url").getAsString() : null;
+        if (avatarUrl != null && !avatarUrl.isEmpty()) {
+            loadAvatar(avatar, avatarUrl);
+        } else {
+            // 无头像：显示用户名首字
+            avatar.setVisibility(View.GONE);
+        }
+
+        // 用户名 + 签名
+        LinearLayout col = new LinearLayout(requireContext());
+        col.setOrientation(LinearLayout.VERTICAL);
+
+        String username = p.has("username") ? p.get("username").getAsString() : "用户";
+        TextView name = text(username, Theme.INK, 18, true);
+        col.addView(name);
+
+        String bio = p.has("bio") && !p.get("bio").isJsonNull()
+                ? p.get("bio").getAsString() : "";
+        if (!bio.isEmpty()) {
+            TextView bioTv = text(bio, Theme.INK_SOFT, 13);
+            bioTv.setPadding(0, dp(4), 0, 0);
+            col.addView(bioTv);
+        }
+
+        card.addView(avatar);
+        card.addView(col);
+        return card;
+    }
+
+    /** 后台线程下载头像 bitmap，回到主线程设给 ImageView */
+    private void loadAvatar(ImageView iv, String url) {
+        Bg.run(() -> {
+            try {
+                java.net.URL u = new java.net.URL(url);
+                java.net.HttpURLConnection conn = (java.net.HttpURLConnection) u.openConnection();
+                conn.setConnectTimeout(5000);
+                conn.setReadTimeout(5000);
+                conn.setDoInput(true);
+                conn.connect();
+                return BitmapFactory.decodeStream(conn.getInputStream());
+            } catch (Exception e) {
+                return null;
+            }
+        },
+        bitmap -> {
+            if (bitmap != null) {
+                iv.setImageBitmap(bitmap);
+                // 圆形裁剪
+                GradientDrawable gd = new GradientDrawable();
+                gd.setShape(GradientDrawable.OVAL);
+                gd.setColor(Theme.CARD);
+                gd.setStroke(dp(2), Theme.DIVIDER);
+                iv.setClipToOutline(true);
+                iv.setBackground(gd);
+            }
+        },
+        err -> { /* 头像加载失败，静默 */ });
     }
 
     // ---------- 视图小工具 ----------

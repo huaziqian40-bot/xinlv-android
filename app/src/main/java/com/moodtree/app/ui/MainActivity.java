@@ -163,20 +163,28 @@ public class MainActivity extends AppCompatActivity {
                 err -> { /* 静默 */ });
     }
 
-    /** 保存（新建或编辑）一条心情记录到本地库，打 dirty 标记，再异步同步。 */
-    public void saveMoodEntry(MoodEntry e) {
+    /** 保存（新建或编辑）一条心情记录到本地库，打 dirty 标记，再异步同步。
+     *  onDone 在 DB 写完后在主线程回调（用于刷新 UI）。 */
+    public void saveMoodEntry(MoodEntry e, Runnable onDone) {
         Bg.run(() -> {
             app().db().moodDao().upsert(e);
             Bg.ui(() -> {
                 refreshCalendar();
                 updateMoodVisual();
+                if (onDone != null) onDone.run();
             });
             requestSync(null);
         });
     }
 
-    /** 删除一条记录（墓碑：deleted=1 + dirty=1），再异步同步。 */
-    public void deleteMoodEntry(MoodEntry e) {
+    /** 保存（无回调），兼容旧调用 */
+    public void saveMoodEntry(MoodEntry e) {
+        saveMoodEntry(e, null);
+    }
+
+    /** 删除一条记录（墓碑：deleted=1 + dirty=1），再异步同步。
+     *  onDone 在 DB 写完后在主线程回调。 */
+    public void deleteMoodEntry(MoodEntry e, Runnable onDone) {
         Bg.run(() -> {
             e.deleted = true;
             e.updatedAt = com.moodtree.app.util.Dates.nowIso();
@@ -185,9 +193,15 @@ public class MainActivity extends AppCompatActivity {
             Bg.ui(() -> {
                 refreshCalendar();
                 updateMoodVisual();
+                if (onDone != null) onDone.run();
             });
             requestSync(null);
         });
+    }
+
+    /** 删除（无回调），兼容旧调用 */
+    public void deleteMoodEntry(MoodEntry e) {
+        deleteMoodEntry(e, null);
     }
 
     /** 触发一轮同步。游客/未登录跳过；结果可选回调到主线程。 */

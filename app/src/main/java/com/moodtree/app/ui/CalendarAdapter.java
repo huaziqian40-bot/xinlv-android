@@ -17,8 +17,8 @@ import java.time.YearMonth;
 import java.util.HashMap;
 import java.util.Map;
 
-/** 日历网格适配器：周一为一周起点，前导空格补齐。每个有记录的日子显示心情 emoji。
- *  点格子回调：有记录→看详情，空日子/今天→记心情。 */
+/** 日历网格适配器：周一为一周起点，前导空格补齐。每个格子：日期数字右上角 + 心情 emoji 居中。
+ *  点格子始终展开该日详情。 */
 public class CalendarAdapter extends BaseAdapter {
 
     /** 格子内容：null 表示占位空格（月初对齐用） */

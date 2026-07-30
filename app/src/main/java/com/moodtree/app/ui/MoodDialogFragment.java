@@ -157,9 +157,11 @@ public class MoodDialogFragment extends DialogFragment {
             e.dirty = true;
             e.intensityLevel = getLevelFromPercent(intensitySeek.getProgress());
             e.intensityPercent = intensitySeek.getProgress();
-            ((MainActivity) requireActivity()).saveMoodEntry(e);
-            if (onSaved != null) onSaved.onSaved();
-            dismiss();
+            // 传入回调：DB 写完后才触发 onSaved（确保 showDay 能看到新数据）
+            ((MainActivity) requireActivity()).saveMoodEntry(e, () -> {
+                if (onSaved != null) onSaved.onSaved();
+                dismiss();
+            });
         });
 
         return d;
