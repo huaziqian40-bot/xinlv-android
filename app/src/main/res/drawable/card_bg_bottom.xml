@@ -1,9 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- 底部面板背景：仅底部圆角，顶部贴平时无间隙 -->
+<!-- 底部面板背景：全圆角，与日历网格保持 8dp 间距 -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="rectangle">
     <solid android:color="@color/card" />
-    <corners
-        android:bottomLeftRadius="14dp"
-        android:bottomRightRadius="14dp" />
+    <corners android:radius="14dp" />
 </shape>
