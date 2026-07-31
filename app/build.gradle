@@ -10,8 +10,8 @@ android {
         applicationId "com.moodtree.app"
         minSdk 26          // Android 8.0，覆盖 99% 在用设备
         targetSdk 36
-        versionCode 18
-        versionName "1.2.9"
+        versionCode 19
+        versionName "1.2.10"
         vectorDrawables { useSupportLibrary true }
     }
 

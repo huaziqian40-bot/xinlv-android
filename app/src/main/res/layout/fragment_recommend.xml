@@ -36,9 +36,8 @@
         android:id="@+id/chipMoods"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:paddingHorizontal="0dp"
+        android:paddingHorizontal="12dp"
         android:paddingBottom="0dp"
-        app:chipSpacingHorizontal="0dp"
         app:chipSpacingVertical="-4dp" />
 
     <TextView

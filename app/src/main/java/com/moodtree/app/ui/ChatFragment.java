@@ -62,8 +62,8 @@ public class ChatFragment extends BaseFragment implements Refreshable {
             @Override
             public void getItemOffsets(@NonNull android.graphics.Rect outRect, @NonNull View view,
                                        @NonNull RecyclerView parent, @NonNull RecyclerView.State state) {
-                outRect.top = dp(6);
-                outRect.bottom = dp(6);
+                outRect.top = dp(4);
+                outRect.bottom = dp(4);
             }
         });
         etInput = root.findViewById(R.id.etInput);
