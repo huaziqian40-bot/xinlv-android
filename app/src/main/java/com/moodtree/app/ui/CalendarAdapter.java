@@ -32,7 +32,8 @@ public class CalendarAdapter extends BaseAdapter {
     public interface OnCellClick { void onClick(Cell cell); }
 
     private final LayoutInflater inflater;
-    private final Cell[] cells = new Cell[42];   // 6 行 × 7 列
+    private Cell[] cells = new Cell[0];   // 动态大小：leading + daysInMonth
+    private int actualCount;              // 实际格子数（含前导空格）
     private final Map<String, String> dateToMood = new HashMap<>();  // yyyy-MM-dd -> moodKey
     private OnCellClick clickListener;
     private YearMonth month;
@@ -41,7 +42,7 @@ public class CalendarAdapter extends BaseAdapter {
         this.inflater = inflater;
     }
 
-    /** 设置当前月份并重算网格（周一为起点） */
+    /** 设置当前月份并重算网格（周一为起点），动态计算实际行数 */
     public void setMonth(YearMonth ym, Map<String, String> moodByDate) {
         this.month = ym;
         this.dateToMood.clear();
@@ -51,9 +52,16 @@ public class CalendarAdapter extends BaseAdapter {
         // 周一=1...周日=7，转成"前导空格数"：让 1 号落在对应列
         int leading = first.getDayOfWeek().getValue() % 7;   // 周日(7)%7=0 落最后一列，周一(1)%7=1 落第一列
         int daysInMonth = ym.lengthOfMonth();
+
+        // 计算实际需要的格子数：leading + daysInMonth，向上取整到 7 的倍数
+        int total = leading + daysInMonth;
+        int rows = (total + 6) / 7;     // 实际行数（4~6）
+        actualCount = rows * 7;         // 实际格子数
+        cells = new Cell[actualCount];
+
         LocalDate today = LocalDate.now();
 
-        for (int i = 0; i < 42; i++) {
+        for (int i = 0; i < actualCount; i++) {
             int dayNum = i - leading + 1;
             if (dayNum < 1 || dayNum > daysInMonth) {
                 cells[i] = null;
@@ -70,9 +78,12 @@ public class CalendarAdapter extends BaseAdapter {
 
     public YearMonth getMonth() { return month; }
 
+    /** 返回实际行数（4~6），根据当前月动态计算 */
+    public int getRowCount() { return actualCount / 7; }
+
     public void setClickListener(OnCellClick l) { this.clickListener = l; }
 
-    @Override public int getCount() { return 42; }
+    @Override public int getCount() { return actualCount; }
     @Override public Object getItem(int position) { return cells[position]; }
     @Override public long getItemId(int position) { return position; }
 
