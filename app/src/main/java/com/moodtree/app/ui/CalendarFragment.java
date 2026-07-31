@@ -171,15 +171,16 @@ public class CalendarFragment extends BaseFragment implements Refreshable {
         btnViewYear.setTextColor(active.equals("year") ? Theme.ACCENT : Theme.INK_SOFT);
     }
 
-    /** 重新读库：渲染当前月网格（每格显示当天最多次的心情 emoji）+ 刷新底部列表 */
+    /** 重新读库：渲染当前月网格（每格显示当天最多次的心情 emoji，无重复则显示最新）+ 刷新底部列表 */
     public void reload() {
         if (currentMonth == null || !isAdded()) return;
         Bg.run(() -> {
             String prefix = Dates.monthPrefix(currentMonth);
             List<MoodEntry> monthEntries = app().db().moodDao().listForMonth(prefix);
-            // 统计每日期最多的心情，显示在格子中
             // date -> {moodKey -> count}
             Map<String, Map<String, Integer>> countByDate = new HashMap<>();
+            // date -> 最后一条记录（用于无重复时取最新）
+            Map<String, MoodEntry> latestByDate = new HashMap<>();
             for (MoodEntry e : monthEntries) {
                 Map<String, Integer> counts = countByDate.get(e.date);
                 if (counts == null) {
@@ -187,18 +188,36 @@ public class CalendarFragment extends BaseFragment implements Refreshable {
                     countByDate.put(e.date, counts);
                 }
                 counts.put(e.mood, counts.getOrDefault(e.mood, 0) + 1);
+                // 记录该日期最后一条（listForMonth 已按 date,at 排序）
+                latestByDate.put(e.date, e);
             }
             Map<String, String> moodByDate = new HashMap<>();
             for (Map.Entry<String, Map<String, Integer>> entry : countByDate.entrySet()) {
+                String date = entry.getKey();
+                Map<String, Integer> counts = entry.getValue();
                 String bestMood = null;
                 int maxCount = 0;
-                for (Map.Entry<String, Integer> mc : entry.getValue().entrySet()) {
-                    if (mc.getValue() > maxCount) {
-                        maxCount = mc.getValue();
-                        bestMood = mc.getKey();
+                boolean hasDuplicate = false;
+                for (int c : counts.values()) {
+                    if (c > 1) hasDuplicate = true;
+                    if (c > maxCount) {
+                        maxCount = c;
                     }
                 }
-                if (bestMood != null) moodByDate.put(entry.getKey(), bestMood);
+                if (hasDuplicate) {
+                    // 有重复：取出现次数最多的
+                    for (Map.Entry<String, Integer> mc : counts.entrySet()) {
+                        if (mc.getValue() == maxCount) {
+                            bestMood = mc.getKey();
+                            break;
+                        }
+                    }
+                } else {
+                    // 无重复：取最新记录的心情
+                    MoodEntry latest = latestByDate.get(date);
+                    if (latest != null) bestMood = latest.mood;
+                }
+                if (bestMood != null) moodByDate.put(date, bestMood);
             }
             Bg.ui(() -> {
                 if (!isAdded()) return;
@@ -399,8 +418,9 @@ public class CalendarFragment extends BaseFragment implements Refreshable {
 
         Bg.run(() -> {
             List<MoodEntry> entries = app().db().moodDao().listForRange(start, end);
-            // 取每天最多次数的心情
+            // 统计每天心情
             Map<String, Map<String, Integer>> countByDate = new HashMap<>();
+            Map<String, MoodEntry> latestByDate = new HashMap<>();
             for (MoodEntry e : entries) {
                 Map<String, Integer> counts = countByDate.get(e.date);
                 if (counts == null) {
@@ -408,18 +428,31 @@ public class CalendarFragment extends BaseFragment implements Refreshable {
                     countByDate.put(e.date, counts);
                 }
                 counts.put(e.mood, counts.getOrDefault(e.mood, 0) + 1);
+                latestByDate.put(e.date, e);
             }
             Map<String, String> dayMood = new HashMap<>();
             for (Map.Entry<String, Map<String, Integer>> entry : countByDate.entrySet()) {
+                String date = entry.getKey();
+                Map<String, Integer> counts = entry.getValue();
                 String bestMood = null;
                 int maxCount = 0;
-                for (Map.Entry<String, Integer> mc : entry.getValue().entrySet()) {
-                    if (mc.getValue() > maxCount) {
-                        maxCount = mc.getValue();
-                        bestMood = mc.getKey();
-                    }
+                boolean hasDuplicate = false;
+                for (int c : counts.values()) {
+                    if (c > 1) hasDuplicate = true;
+                    if (c > maxCount) maxCount = c;
                 }
-                if (bestMood != null) dayMood.put(entry.getKey(), bestMood);
+                if (hasDuplicate) {
+                    for (Map.Entry<String, Integer> mc : counts.entrySet()) {
+                        if (mc.getValue() == maxCount) {
+                            bestMood = mc.getKey();
+                            break;
+                        }
+                    }
+                } else {
+                    MoodEntry latest = latestByDate.get(date);
+                    if (latest != null) bestMood = latest.mood;
+                }
+                if (bestMood != null) dayMood.put(date, bestMood);
             }
 
             Bg.ui(() -> {
