@@ -361,7 +361,7 @@ public class MeFragment extends BaseFragment implements Refreshable {
                 if (getActivity() != null) getActivity().recreate();
             });
             LinearLayout.LayoutParams pp = new LinearLayout.LayoutParams(lpW(), lpW());
-            pp.rightMargin = dp(8);
+            pp.rightMargin = dp(4);
             b.setLayoutParams(pp);
             presetRow.addView(b);
         }
@@ -383,7 +383,7 @@ public class MeFragment extends BaseFragment implements Refreshable {
             });
         });
         LinearLayout.LayoutParams pp2 = new LinearLayout.LayoutParams(lpW(), lpW());
-        pp2.rightMargin = dp(8);
+        pp2.rightMargin = dp(4);
         plusBtn.setLayoutParams(pp2);
         presetRow.addView(plusBtn);
         box.addView(presetRow);
@@ -466,7 +466,7 @@ public class MeFragment extends BaseFragment implements Refreshable {
             LinearLayout item = new LinearLayout(requireContext());
             item.setGravity(Gravity.CENTER);
             LinearLayout.LayoutParams ilp = new LinearLayout.LayoutParams(0, swatchH, 1f);
-            if (i < 3) ilp.rightMargin = gap;
+            if (i < 4) ilp.rightMargin = gap;
             item.setLayoutParams(ilp);
             GradientDrawable bg = new GradientDrawable();
             bg.setShape(GradientDrawable.RECTANGLE);
