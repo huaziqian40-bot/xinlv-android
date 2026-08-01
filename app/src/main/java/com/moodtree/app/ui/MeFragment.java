@@ -253,39 +253,8 @@ public class MeFragment extends BaseFragment implements Refreshable {
         LinearLayout box = card();
         box.addView(text("设置", Theme.INK, 16, true));
 
-        // 主题预设（4 预设 + 加号自定义）
-        box.addView(label("主题"));
-        LinearLayout presetRow = new LinearLayout(requireContext());
-        presetRow.setOrientation(LinearLayout.HORIZONTAL);
-        presetRow.setLayoutParams(lp(lpM(), lpW(), 0, dp(6), 0, dp(10)));
-        for (String[] preset : Theme.PRESETS) {
-            String id = preset[0], name = preset[1], preview = preset[2];
-            Button b = new Button(requireContext());
-            boolean active = id.equals(app().config().themeId());
-            b.setText("● " + name);
-            b.setTextColor(active ? Theme.ACCENT : Theme.INK);
-            b.setBackgroundColor(Color.TRANSPARENT);
-            b.setMinWidth(0); b.setMinimumWidth(0);
-            b.setMinHeight(0); b.setMinimumHeight(0);
-            b.setPadding(dp(12), dp(6), dp(12), dp(6));
-            b.setOnClickListener(v -> applyTheme(id, app().config().accent()));
-            LinearLayout.LayoutParams pp = new LinearLayout.LayoutParams(lpW(), lpW());
-            pp.rightMargin = dp(8);
-            b.setLayoutParams(pp);
-            presetRow.addView(b);
-        }
-        // 加号按钮：跳转颜色选择界面
-        Button plusBtn = new Button(requireContext());
-        plusBtn.setText("＋");
-        plusBtn.setTextColor(Theme.ACCENT);
-        plusBtn.setBackgroundColor(Color.TRANSPARENT);
-        plusBtn.setMinWidth(0); plusBtn.setMinimumWidth(0);
-        plusBtn.setMinHeight(0); plusBtn.setMinimumHeight(0);
-        plusBtn.setPadding(dp(12), dp(6), dp(12), dp(6));
-        plusBtn.setOnClickListener(v -> showThemeEditor());
-        plusBtn.setLayoutParams(new LinearLayout.LayoutParams(lpW(), lpW()));
-        presetRow.addView(plusBtn);
-        box.addView(presetRow);
+        // 主题卡片：4 预设 + 加号打开取色器 + 3 色编辑区直接可见
+        box.addView(buildThemeCard());
 
         // 服务器地址
         box.addView(label("服务器地址"));
@@ -359,40 +328,30 @@ public class MeFragment extends BaseFragment implements Refreshable {
         if (getActivity() != null) getActivity().recreate();
     }
 
-    // ========== 主题编辑器（3 色自定义） ==========
+    // ========== 主题专用卡片（直接可见，无需跳转对话框） ==========
 
-    /** 打开主题调整对话框：4 预设 + 3 色自定义（背景/卡片/强调色） */
-    private void showThemeEditor() {
-        LinearLayout body = new LinearLayout(requireContext());
-        body.setOrientation(LinearLayout.VERTICAL);
-        int pad = dp(20);
-        body.setPadding(pad, pad, pad, pad);
+    /** 主题专用卡片：4 预设 + 加号打开取色器 + 3 色编辑区直接可见 */
+    private View buildThemeCard() {
+        LinearLayout box = card();
+        box.addView(text("主题", Theme.INK, 16, true));
 
-        // 1. 预设选择
-        TextView tvPreset = new TextView(requireContext());
-        tvPreset.setText("选择预设");
-        tvPreset.setTextColor(Theme.INK);
-        tvPreset.setTextSize(16);
-        tvPreset.setTypeface(null, Typeface.BOLD);
-        body.addView(tvPreset);
-
+        // 预设行
         LinearLayout presetRow = new LinearLayout(requireContext());
         presetRow.setOrientation(LinearLayout.HORIZONTAL);
-        presetRow.setLayoutParams(lp(lpM(), lpW(), 0, dp(8), 0, dp(12)));
+        presetRow.setLayoutParams(lp(lpM(), lpW(), 0, dp(6), 0, dp(8)));
         String curId = app().config().themeId();
         for (String[] preset : Theme.PRESETS) {
             String id = preset[0], name = preset[1];
             Button b = new Button(requireContext());
+            boolean active = id.equals(curId);
             b.setText("● " + name);
-            b.setTextColor(id.equals(curId) ? Theme.ACCENT : Theme.INK);
+            b.setTextColor(active ? Theme.ACCENT : Theme.INK);
             b.setBackgroundColor(Color.TRANSPARENT);
             b.setMinWidth(0); b.setMinimumWidth(0);
             b.setMinHeight(0); b.setMinimumHeight(0);
             b.setPadding(dp(12), dp(6), dp(12), dp(6));
             b.setOnClickListener(v -> {
-                // 应用预设但不关闭，让用户再微调
                 app().config().setThemeId(id);
-                // 清掉自定义颜色，回到预设
                 app().config().setThemeBg("");
                 app().config().setThemeCard("");
                 app().config().setAccent("");
@@ -404,7 +363,7 @@ public class MeFragment extends BaseFragment implements Refreshable {
             b.setLayoutParams(pp);
             presetRow.addView(b);
         }
-        // 加号按钮（先创建，listener 在 dialog 创建后设置）
+        // 加号按钮：打开取色器（强调色）
         Button plusBtn = new Button(requireContext());
         plusBtn.setText("＋");
         plusBtn.setTextColor(Theme.ACCENT);
@@ -412,40 +371,39 @@ public class MeFragment extends BaseFragment implements Refreshable {
         plusBtn.setMinWidth(0); plusBtn.setMinimumWidth(0);
         plusBtn.setMinHeight(0); plusBtn.setMinimumHeight(0);
         plusBtn.setPadding(dp(12), dp(6), dp(12), dp(6));
+        plusBtn.setOnClickListener(v -> {
+            String cur = app().config().accent();
+            showColorPickerFor("强调色", cur, Theme.presetAccent, hex -> {
+                app().config().setAccent(hex);
+                Theme.apply(app().config().themeId(), null, null, hex);
+                if (getActivity() != null) getActivity().recreate();
+            });
+        });
         plusBtn.setLayoutParams(new LinearLayout.LayoutParams(lpW(), lpW()));
         presetRow.addView(plusBtn);
-        body.addView(presetRow);
+        box.addView(presetRow);
 
-        // 2. 三色编辑区
-        body.addView(colorEditRow("🎨 背景色", app().config().themeBg(),
+        // 3 色编辑区直接可见
+        box.addView(colorEditRow("🎨 背景色", app().config().themeBg(),
                 Theme.presetBg, Theme.BG, hex -> {
                     app().config().setThemeBg(hex);
                     Theme.apply(app().config().themeId(), hex, app().config().themeCard(), app().config().accent());
                     if (getActivity() != null) getActivity().recreate();
                 }));
-        body.addView(colorEditRow("📦 卡片色", app().config().themeCard(),
+        box.addView(colorEditRow("📦 卡片色", app().config().themeCard(),
                 Theme.presetCard, Theme.CARD, hex -> {
                     app().config().setThemeCard(hex);
                     Theme.apply(app().config().themeId(), app().config().themeBg(), hex, app().config().accent());
                     if (getActivity() != null) getActivity().recreate();
                 }));
-        body.addView(colorEditRow("🔘 强调色", app().config().accent(),
+        box.addView(colorEditRow("🔘 强调色", app().config().accent(),
                 Theme.presetAccent, Theme.ACCENT, hex -> {
                     app().config().setAccent(hex);
                     Theme.apply(app().config().themeId(), app().config().themeBg(), app().config().themeCard(), hex);
                     if (getActivity() != null) getActivity().recreate();
                 }));
 
-        // 3. 创建对话框后再设置加号按钮的点击事件（需要 dialog 引用）
-        final AlertDialog dialog = new AlertDialog.Builder(requireContext())
-                .setTitle("主题调整")
-                .setView(body)
-                .setPositiveButton("完成", null)
-                .show();
-        plusBtn.setOnClickListener(v -> {
-            dialog.dismiss();
-            showThemeEditor();
-        });
+        return box;
     }
 
     /** 一行颜色编辑区：标签 + 9 色板 + 自定义按钮 */
@@ -547,27 +505,6 @@ public class MeFragment extends BaseFragment implements Refreshable {
                 .setTitle("选择" + label)
                 .setView(picker)
                 .setPositiveButton("确定", (d, w) -> onApply.accept(picker.getHex()))
-                .setNegativeButton("取消", null)
-                .show();
-    }
-
-    private void askCustomAccent() {
-        final EditText et = new EditText(requireContext());
-        et.setHint("#RRGGBB，如 #7d9b76");
-        et.setInputType(InputType.TYPE_CLASS_TEXT);
-        String cur = app().config().accent();
-        if (!cur.isEmpty()) et.setText(cur);
-        new AlertDialog.Builder(requireContext())
-                .setTitle("自定义强调色")
-                .setView(et)
-                .setPositiveButton("确定", (d, w) -> {
-                    String hex = et.getText().toString().trim();
-                    if (hex.matches("^#[0-9A-Fa-f]{6}$")) {
-                        applyTheme(app().config().themeId(), hex);
-                    } else {
-                        Toast.makeText(getContext(), "格式不对，要 #RRGGBB", Toast.LENGTH_SHORT).show();
-                    }
-                })
                 .setNegativeButton("取消", null)
                 .show();
     }
