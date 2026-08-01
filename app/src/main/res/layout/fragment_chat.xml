@@ -90,7 +90,7 @@
         <EditText
             android:id="@+id/etInput"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="40dp"
             android:layout_weight="1"
             android:hint="想聊点什么…"
             android:background="@drawable/input_bg"
@@ -98,7 +98,8 @@
             android:maxLines="3"
             android:inputType="textMultiLine|textCapSentences"
             android:imeOptions="actionSend"
-            android:textSize="14sp" />
+            android:textSize="14sp"
+            android:gravity="center_vertical" />
 
         <Button
             android:id="@+id/btnSend"

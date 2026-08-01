@@ -514,7 +514,6 @@ public class MeFragment extends BaseFragment implements Refreshable {
             String initial = (curHex != null && !curHex.isEmpty()) ? curHex : presetHex;
             picker.setColor(initial);
             int pad = dp(20);
-            picker.setPadding(pad, 0, pad, 0);
 
             // 标题行
             TextView titleView = new TextView(requireContext());

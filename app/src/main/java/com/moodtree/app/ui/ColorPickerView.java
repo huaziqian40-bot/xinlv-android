@@ -7,6 +7,7 @@ import android.graphics.LinearGradient;
 import android.graphics.Paint;
 import android.graphics.RectF;
 import android.graphics.Shader;
+import android.graphics.drawable.GradientDrawable;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
@@ -89,6 +90,14 @@ public class ColorPickerView extends View {
         handleRadius = dp(HANDLE_RADIUS_DP);
         cornerRadius = dp(CORNER_RADIUS_DP);
 
+        // 设置圆角裁剪轮廓：让 View 自身按圆角裁剪，确保所有 4 个角都圆角
+        GradientDrawable outline = new GradientDrawable();
+        outline.setShape(GradientDrawable.RECTANGLE);
+        outline.setCornerRadius(cornerRadius);
+        outline.setColor(android.graphics.Color.TRANSPARENT);
+        setBackground(outline);
+        setClipToOutline(true);
+
         hueBarPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         svSquarePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         svWhitePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -149,9 +158,8 @@ public class ColorPickerView extends View {
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
 
-        // 背景圆角矩形
-        RectF bgRect = new RectF(padding, padding, getWidth() - padding, getHeight() - padding);
-        canvas.drawRoundRect(bgRect, cornerRadius, cornerRadius, bgPaint);
+        // 背景填充（clipToOutline 确保 4 个角都圆角）
+        canvas.drawRoundRect(0, 0, getWidth(), getHeight(), cornerRadius, cornerRadius, bgPaint);
 
         // 1. 色相条
         drawHueBar(canvas);
