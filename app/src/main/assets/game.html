@@ -11,15 +11,15 @@ body{background:#faf8f5;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",
 .game-hud{display:flex;align-items:center;gap:1rem;width:100%;max-width:360px;margin-bottom:6px;padding:0 4px}
 .hud-item{font-size:12px;color:#999;text-align:center;line-height:1.3}
 .hud-item b{font-size:16px;color:#333;display:block}
-.btn-restart{margin-left:auto;padding:6px 14px;border:1px solid #ddd;border-radius:8px;background:#fff;color:#555;font-size:13px;cursor:pointer;-webkit-tap-highlight-color:transparent}
-.btn-restart:active{background:#f0f0f0}
+.btn-restart{margin-left:auto;padding:7px 16px;border:none;border-radius:10px;background:#e7623e;color:#fff;font-size:13px;font-weight:600;cursor:pointer;box-shadow:0 2px 6px rgba(231,98,62,.3);-webkit-tap-highlight-color:transparent;transition:transform .15s,box-shadow .15s}
+.btn-restart:active{transform:scale(.95);box-shadow:0 1px 3px rgba(231,98,62,.2)}
 .game-stage-wrap{position:relative;width:360px;max-width:100%}
 #g-canvas{width:360px;max-width:100%;aspect-ratio:360/520;display:block;background:#fff;border-radius:12px;box-shadow:0 2px 12px rgba(0,0,0,.08);border:1px solid #eee;cursor:pointer;touch-action:pan-y}
 .game-over{position:absolute;inset:0;background:rgba(250,248,245,.92);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;border-radius:12px;text-align:center;animation:fadeIn .25s ease;z-index:10}
 .game-over p{margin:4px 0;font-size:16px;font-weight:600;color:#333}
 .game-over .muted{font-size:13px;font-weight:400;color:#999}
-.game-over .btn-retry{margin-top:8px;padding:10px 24px;background:#e7623e;color:#fff;border:none;border-radius:10px;font-size:16px;cursor:pointer;-webkit-tap-highlight-color:transparent}
-.game-over .btn-retry:active{background:#d05535}
+.game-over .btn-retry{margin-top:8px;padding:10px 24px;background:#e7623e;color:#fff;border:none;border-radius:10px;font-size:16px;font-weight:600;cursor:pointer;box-shadow:0 2px 6px rgba(231,98,62,.3);-webkit-tap-highlight-color:transparent;transition:transform .15s,box-shadow .15s}
+.game-over .btn-retry:active{transform:scale(.95);box-shadow:0 1px 3px rgba(231,98,62,.2)}
 .game-hint{font-size:11px;color:#aaa;max-width:360px;margin-top:6px;text-align:center;line-height:1.4;padding:0 12px}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 </style>
@@ -29,7 +29,7 @@ body{background:#faf8f5;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",
   <div class="game-hud">
     <div class="hud-item">分数<b id="g-score">0</b></div>
     <div class="hud-item">最高分<b id="g-best">0</b></div>
-    <button class="btn-restart" id="g-restart">🔄 重来</button>
+    <button class="btn-restart" id="g-restart">重来</button>
   </div>
   <div class="game-stage-wrap">
     <canvas id="g-canvas" width="360" height="520"></canvas>
@@ -72,6 +72,8 @@ body{background:#faf8f5;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",
   const SPIN_FRICTION = 0.25;
   const ANG_DAMPING = 0.985;
   const MAX_SPIN = 0.3;
+  const SPIN_DEAD_ZONE = 0.002;   // 低于此值归零，防止持续缓慢旋转
+  const COLLISION_SPEED_THRESH = 0.3; // 碰撞速度低于此值不传递自旋
 
   // 水果贴图：从 assets/images/fruits/ 加载
   const SPRITE_BASE = "images/fruits/";
@@ -162,13 +164,14 @@ body{background:#faf8f5;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",
       b.vx *= DAMPING; b.vy *= DAMPING;
       b.angVel *= ANG_DAMPING;
       if(Math.abs(b.vx) + Math.abs(b.vy) < 0.8) b.angVel *= 0.75;
+      if(Math.abs(b.angVel) < SPIN_DEAD_ZONE) b.angVel = 0;
       if(b.angVel >  MAX_SPIN) b.angVel =  MAX_SPIN;
       if(b.angVel < -MAX_SPIN) b.angVel = -MAX_SPIN;
       b.angle += b.angVel;
       if(b.scale < 1) b.scale = Math.min(1, b.scale + 0.08);
 
-      if(b.x - b.r < 0){ b.x = b.r; b.vx *= -WALL_BOUNCE; b.angVel += b.vy / b.r * 0.2; }
-      if(b.x + b.r > W){ b.x = W - b.r; b.vx *= -WALL_BOUNCE; b.angVel -= b.vy / b.r * 0.2; }
+      if(b.x - b.r < 0){ b.x = b.r; b.vx *= -WALL_BOUNCE; if(Math.abs(b.vy) > 0.5) b.angVel += b.vy / b.r * 0.2; }
+      if(b.x + b.r > W){ b.x = W - b.r; b.vx *= -WALL_BOUNCE; if(Math.abs(b.vy) > 0.5) b.angVel -= b.vy / b.r * 0.2; }
       if(b.y + b.r > H){
         b.y = H - b.r; b.vy *= -WALL_BOUNCE; if(Math.abs(b.vy)<0.6) b.vy=0;
         const rolling = b.vx / b.r;
@@ -200,8 +203,10 @@ body{background:#faf8f5;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",
           b.vx += nx*overlap*damp; b.vy += ny*overlap*damp;
           const tx=-ny, ty=nx;
           const vt = (b.vx-a.vx)*tx + (b.vy-a.vy)*ty - (a.angVel*a.r + b.angVel*b.r);
-          a.angVel += vt / a.r * SPIN_FRICTION;
-          b.angVel += vt / b.r * SPIN_FRICTION;
+          if(Math.abs(vt) > COLLISION_SPEED_THRESH) {
+            a.angVel += vt / a.r * SPIN_FRICTION;
+            b.angVel += vt / b.r * SPIN_FRICTION;
+          }
           a.angVel *= 0.9; b.angVel *= 0.9;
           a.vx += tx*vt*0.02; a.vy += ty*vt*0.02;
           b.vx -= tx*vt*0.02; b.vy -= ty*vt*0.02;
