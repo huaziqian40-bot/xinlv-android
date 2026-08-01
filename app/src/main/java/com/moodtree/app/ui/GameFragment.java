@@ -1,5 +1,6 @@
 package com.moodtree.app.ui;
 
+import android.graphics.Color;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -13,6 +14,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.moodtree.app.R;
+import com.moodtree.app.model.Theme;
 
 /** 合成大西瓜小游戏：用 WebView 加载 assets/game.html（纯 Canvas JS 游戏，与网页端一致）。
  *  游戏逻辑完全在 HTML 中，Fragment 只负责 WebView 配置和生命周期管理。 */
@@ -41,13 +43,34 @@ public class GameFragment extends BaseFragment {
         ws.setCacheMode(WebSettings.LOAD_NO_CACHE);
 
         webView.setWebChromeClient(new WebChromeClient());
-        webView.setWebViewClient(new WebViewClient());
+        webView.setWebViewClient(new WebViewClient() {
+            @Override
+            public void onPageFinished(WebView view, String url) {
+                injectThemeColors();
+            }
+        });
         webView.setOverScrollMode(View.OVER_SCROLL_NEVER);
         webView.setScrollBarStyle(View.SCROLLBARS_INSIDE_OVERLAY);
+        webView.setBackgroundColor(Color.TRANSPARENT);
 
         // 加载 assets 中的游戏页面
         webView.loadUrl("file:///android_asset/game.html");
         return root;
+    }
+
+    /** 向 WebView 注入当前主题颜色 */
+    private void injectThemeColors() {
+        String bg = Theme.toHex(Theme.BG);
+        String card = Theme.toHex(Theme.CARD);
+        String accent = Theme.toHex(Theme.ACCENT);
+        String ink = Theme.toHex(Theme.INK);
+        String inkSoft = Theme.toHex(Theme.INK_SOFT);
+        String canvasBg = Theme.toHex(Theme.isDark(Theme.BG) ? Theme.CARD : Theme.blend(Theme.CARD, 0xFFFFFF, 0.5f));
+        String js = String.format(
+            "javascript:window.applyTheme('%s','%s','%s','%s','%s','%s');",
+            bg, card, accent, ink, inkSoft, canvasBg
+        );
+        webView.evaluateJavascript(js, null);
     }
 
     @Override

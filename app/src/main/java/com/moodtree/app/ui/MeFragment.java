@@ -253,7 +253,7 @@ public class MeFragment extends BaseFragment implements Refreshable {
         LinearLayout box = card();
         box.addView(text("设置", Theme.INK, 16, true));
 
-        // 主题预设
+        // 主题预设（4 预设 + 加号自定义）
         box.addView(label("主题"));
         LinearLayout presetRow = new LinearLayout(requireContext());
         presetRow.setOrientation(LinearLayout.HORIZONTAL);
@@ -274,13 +274,18 @@ public class MeFragment extends BaseFragment implements Refreshable {
             b.setLayoutParams(pp);
             presetRow.addView(b);
         }
+        // 加号按钮：跳转颜色选择界面
+        Button plusBtn = new Button(requireContext());
+        plusBtn.setText("＋");
+        plusBtn.setTextColor(Theme.ACCENT);
+        plusBtn.setBackgroundColor(Color.TRANSPARENT);
+        plusBtn.setMinWidth(0); plusBtn.setMinimumWidth(0);
+        plusBtn.setMinHeight(0); plusBtn.setMinimumHeight(0);
+        plusBtn.setPadding(dp(12), dp(6), dp(12), dp(6));
+        plusBtn.setOnClickListener(v -> showThemeEditor());
+        plusBtn.setLayoutParams(new LinearLayout.LayoutParams(lpW(), lpW()));
+        presetRow.addView(plusBtn);
         box.addView(presetRow);
-
-        // 主题调整入口（替代旧版强调色取色器）
-        box.addView(label("主题调整"));
-        Button themeEditorBtn = ghostBtn("自定义背景、卡片、强调色 →");
-        themeEditorBtn.setOnClickListener(v -> showThemeEditor());
-        box.addView(themeEditorBtn);
 
         // 服务器地址
         box.addView(label("服务器地址"));
@@ -399,6 +404,16 @@ public class MeFragment extends BaseFragment implements Refreshable {
             b.setLayoutParams(pp);
             presetRow.addView(b);
         }
+        // 加号按钮（先创建，listener 在 dialog 创建后设置）
+        Button plusBtn = new Button(requireContext());
+        plusBtn.setText("＋");
+        plusBtn.setTextColor(Theme.ACCENT);
+        plusBtn.setBackgroundColor(Color.TRANSPARENT);
+        plusBtn.setMinWidth(0); plusBtn.setMinimumWidth(0);
+        plusBtn.setMinHeight(0); plusBtn.setMinimumHeight(0);
+        plusBtn.setPadding(dp(12), dp(6), dp(12), dp(6));
+        plusBtn.setLayoutParams(new LinearLayout.LayoutParams(lpW(), lpW()));
+        presetRow.addView(plusBtn);
         body.addView(presetRow);
 
         // 2. 三色编辑区
@@ -421,11 +436,16 @@ public class MeFragment extends BaseFragment implements Refreshable {
                     if (getActivity() != null) getActivity().recreate();
                 }));
 
-        new AlertDialog.Builder(requireContext())
+        // 3. 创建对话框后再设置加号按钮的点击事件（需要 dialog 引用）
+        final AlertDialog dialog = new AlertDialog.Builder(requireContext())
                 .setTitle("主题调整")
                 .setView(body)
                 .setPositiveButton("完成", null)
                 .show();
+        plusBtn.setOnClickListener(v -> {
+            dialog.dismiss();
+            showThemeEditor();
+        });
     }
 
     /** 一行颜色编辑区：标签 + 9 色板 + 自定义按钮 */

@@ -59,19 +59,32 @@ public class RecommendFragment extends BaseFragment implements Refreshable {
         tvState = root.findViewById(R.id.tvState);
         resultBox = root.findViewById(R.id.resultBox);
 
+        // 标题文字主题化
+        root.<TextView>findViewById(R.id.tvRecTitle).setTextColor(Theme.INK);
+        root.<TextView>findViewById(R.id.tvRecSub).setTextColor(Theme.INK_SOFT);
+
+        boolean isDark = Theme.isDarkTheme();
         for (MoodMeta m : MoodMeta.all()) {
             Chip chip = new Chip(requireContext());
             chip.setText(m.emoji + " " + m.label);
             chip.setCheckable(true);
             int color = parseColor(m.color);
-            // 用实色浅色代替透明色，避免 Material Chip 默认底色透出导致颜色发暗
-            // 未选中：85% 白色 + 15% 心情色（极浅）；选中：60% 白色 + 40% 心情色（中等）
-            int unselected = lighten(color, 0.85f);
-            int selected = lighten(color, 0.60f);
+            // 提高饱和度
+            color = Theme.adjustSaturation(color, 1.3f);
+            int unselected, selected;
+            if (isDark) {
+                // 深色主题：用暗色底 + 心情色作为边框/强调
+                unselected = darken(color, 0.75f);
+                selected = darken(color, 0.50f);
+            } else {
+                // 浅色主题：用白色淡化心情色
+                unselected = lighten(color, 0.85f);
+                selected = lighten(color, 0.60f);
+            }
             int[][] states = {{android.R.attr.state_checked}, {}};
             int[] colors = {selected, unselected};
             chip.setChipBackgroundColor(new android.content.res.ColorStateList(states, colors));
-            chip.setTextColor(Theme.INK);
+            chip.setTextColor(isDark ? lighterText(selected) : Theme.INK);
             chip.setChipStrokeWidth(0f);
             chip.setChipCornerRadius(dp(20));
             chip.setOnClickListener(v -> select(m.key));
@@ -439,6 +452,21 @@ public class RecommendFragment extends BaseFragment implements Refreshable {
                 (int) (r * (1 - ratio) + wr * ratio),
                 (int) (g * (1 - ratio) + wg * ratio),
                 (int) (b * (1 - ratio) + wb * ratio));
+    }
+
+    /** 将 color 与黑色按比例混合，ratio 越大越接近黑色（深色主题用） */
+    private static int darken(int color, float ratio) {
+        int r = Color.red(color), g = Color.green(color), b = Color.blue(color);
+        return Color.rgb(
+                (int) (r * (1 - ratio)),
+                (int) (g * (1 - ratio)),
+                (int) (b * (1 - ratio)));
+    }
+
+    /** 深色底用浅色文字，浅色底用深色文字 */
+    private static int lighterText(int bg) {
+        double lum = (0.299 * Color.red(bg) + 0.587 * Color.green(bg) + 0.114 * Color.blue(bg)) / 255;
+        return lum > 0.5 ? Theme.INK : Color.WHITE;
     }
 
     /** 深色心情底色用浅字，浅色底用深字 */

@@ -183,8 +183,11 @@ public class LoginActivity extends AppCompatActivity {
         etPass2.setBackground(Theme.createInputBg());
         etPass2.setTextColor(Theme.INK);
         etPass2.setHintTextColor(Theme.INK_SOFT);
-        // 提交按钮
-        findViewById(R.id.btnSubmit).setBackground(Theme.createPrimaryButton());
+        // 提交按钮（Material Button 会覆盖背景色，需清 tint）
+        Button btnSubmit = findViewById(R.id.btnSubmit);
+        btnSubmit.setBackground(Theme.createPrimaryButton());
+        btnSubmit.setBackgroundTintList(null);
+        btnSubmit.setTextColor(Color.WHITE);
         // 同意文本
         TextView tvAgreeText = findViewById(R.id.tvAgreeText);
         tvAgreeText.setTextColor(Theme.INK_SOFT);

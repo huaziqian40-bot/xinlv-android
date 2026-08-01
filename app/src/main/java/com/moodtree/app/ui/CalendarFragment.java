@@ -124,6 +124,39 @@ public class CalendarFragment extends BaseFragment implements Refreshable {
             renderYear();
         });
 
+        // ===== 文字颜色主题化（XML 中设 transparent 占位，此处程序化设色） =====
+        root.<TextView>findViewById(R.id.tvMonth).setTextColor(Theme.INK);
+        root.<TextView>findViewById(R.id.btnPrev).setTextColor(Theme.INK_SOFT);
+        root.<TextView>findViewById(R.id.btnNext).setTextColor(Theme.INK_SOFT);
+        root.<TextView>findViewById(R.id.tvDayTitle).setTextColor(Theme.INK);
+        root.<TextView>findViewById(R.id.tvSync).setTextColor(Theme.INK_SOFT);
+        // 周视图文字
+        root.<TextView>findViewById(R.id.tvWeekTitle).setTextColor(Theme.INK);
+        root.<TextView>findViewById(R.id.btnWeekPrev).setTextColor(Theme.INK_SOFT);
+        root.<TextView>findViewById(R.id.btnWeekNext).setTextColor(Theme.INK_SOFT);
+        // 年视图文字
+        root.<TextView>findViewById(R.id.tvYearTitle).setTextColor(Theme.INK);
+        root.<TextView>findViewById(R.id.btnYearPrev).setTextColor(Theme.INK_SOFT);
+        root.<TextView>findViewById(R.id.btnYearNext).setTextColor(Theme.INK_SOFT);
+        // 视图切换标签初始颜色
+        btnViewMonth.setTextColor(Theme.ACCENT);   // 默认选中月视图
+        btnViewWeek.setTextColor(Theme.INK_SOFT);
+        btnViewYear.setTextColor(Theme.INK_SOFT);
+        // 星期表头（7 个 WeekHeader 风格 TextView，paneMonth 的第一个子 LinearLayout）
+        LinearLayout monthPane = root.findViewById(R.id.paneMonth);
+        if (monthPane.getChildCount() > 0) {
+            View firstChild = monthPane.getChildAt(0);
+            if (firstChild instanceof LinearLayout) {
+                LinearLayout hRow = (LinearLayout) firstChild;
+                for (int i = 0; i < hRow.getChildCount(); i++) {
+                    View child = hRow.getChildAt(i);
+                    if (child instanceof TextView) {
+                        ((TextView) child).setTextColor(Theme.INK_SOFT);
+                    }
+                }
+            }
+        }
+
         currentMonth = YearMonth.now();
         weekAnchor = LocalDate.now().with(DayOfWeek.MONDAY);
         yearNum = LocalDate.now().getYear();
