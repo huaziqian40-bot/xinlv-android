@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- 记心情弹窗：现代卡片风格 -->
+<!-- 记心情弹窗：现代卡片风格，所有颜色由 MoodDialogFragment 程序化设置 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -31,7 +31,7 @@
         android:orientation="vertical"
         android:layout_marginTop="16dp"
         android:background="@android:color/transparent"
-        android:padding="14dp"
+        android:padding="12dp"
         android:visibility="gone">
 
         <LinearLayout
@@ -72,7 +72,7 @@
     </LinearLayout>
 
     <!-- 备注输入框 -->
-    <com.google.android.material.textfield.TextInputEditText
+    <EditText
         android:id="@+id/etNote"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -85,7 +85,8 @@
         android:minHeight="80dp"
         android:textColor="@android:color/transparent"
         android:textColorHint="@android:color/transparent"
-        android:textSize="14sp" />
+        android:textSize="14sp"
+        android:background="@android:color/transparent" />
 
     <LinearLayout
         android:layout_width="match_parent"

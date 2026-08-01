@@ -15,7 +15,7 @@ import com.moodtree.app.model.Theme;
 
 import java.util.List;
 
-/** 记心情弹窗里 10 种心情选择网格。选中态高亮，圆角卡片风格。 */
+/** 记心情弹窗里 10 种心情选择网格。选中态高亮 + 边框，圆角卡片风格。 */
 public class MoodPickAdapter extends RecyclerView.Adapter<MoodPickAdapter.VH> {
 
     public interface OnPick { void onPick(String moodKey); }
@@ -56,15 +56,17 @@ public class MoodPickAdapter extends RecyclerView.Adapter<MoodPickAdapter.VH> {
         h.label.setText(m.label);
         boolean sel = position == selected;
 
-        // 圆角背景
+        // 圆角背景：选中态用强调色 + 边框，未选中用 card 色 + 柔和边框
         GradientDrawable bg = new GradientDrawable();
         bg.setShape(GradientDrawable.RECTANGLE);
         bg.setCornerRadius(dp(h.itemView, 12));
         if (sel) {
             bg.setColor(Theme.ACCENT);
+            bg.setStroke(dp(h.itemView, 2), Theme.ACCENT);
             h.label.setTextColor(0xFFFFFFFF);
         } else {
             bg.setColor(Theme.CARD);
+            bg.setStroke(dp(h.itemView, 1), Theme.DIVIDER);
             h.label.setTextColor(Theme.INK);
         }
         h.itemView.setBackground(bg);

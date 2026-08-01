@@ -11,6 +11,8 @@ import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
 
+import com.moodtree.app.model.Theme;
+
 /** HSV 取色器：色相条（横向渐变 0-360°）+ 饱和度/明度 2D 面 + 预览色块 + HEX 显示。
  *  触摸交互：拖拽色相条取色 → SV 面同步更新；拖拽 SV 面调整饱和度/明度。
  *  回调接口 OnColorChangeListener。 */
@@ -103,12 +105,12 @@ public class ColorPickerView extends View {
         previewBorderPaint.setColor(0x33000000);
 
         hexPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        hexPaint.setColor(Color.parseColor("#666666"));
+        hexPaint.setColor(Theme.INK_SOFT);
         hexPaint.setTextSize(dp(14));
         hexPaint.setTextAlign(Paint.Align.CENTER);
 
         bgPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        bgPaint.setColor(0x0A000000);
+        bgPaint.setColor(Theme.CARD);
         bgPaint.setStyle(Paint.Style.FILL);
     }
 

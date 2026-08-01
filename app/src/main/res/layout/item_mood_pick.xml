@@ -1,12 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- 心情选择网格单项：emoji + 名称。选中加强调色背景，圆角 -->
+<!-- 心情选择网格单项：emoji + 名称。选中态由 MoodPickAdapter 程序化设置 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/cell"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:gravity="center"
-    android:padding="10dp"
+    android:paddingTop="10dp"
+    android:paddingBottom="10dp"
+    android:paddingLeft="12dp"
+    android:paddingRight="12dp"
     android:clickable="true"
     android:focusable="true"
     android:background="@android:color/transparent">
@@ -15,7 +18,7 @@
         android:id="@+id/tvEmoji"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textSize="30sp" />
+        android:textSize="28sp" />
 
     <TextView
         android:id="@+id/tvLabel"
@@ -23,5 +26,5 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="4dp"
         android:textColor="@android:color/transparent"
-        android:textSize="12sp" />
+        android:textSize="11sp" />
 </LinearLayout>

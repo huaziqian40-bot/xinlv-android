@@ -90,7 +90,13 @@ public class MoodDialogFragment extends DialogFragment {
         boolean editing = uuid != null;
 
         View v = getLayoutInflater().inflate(R.layout.dialog_mood, null);
-        v.setBackgroundColor(Theme.CARD);
+
+        // 现代卡片背景：圆角 + CARD 色
+        GradientDrawable dialogBg = new GradientDrawable();
+        dialogBg.setColor(Theme.CARD);
+        dialogBg.setCornerRadius(dp(16));
+        v.setBackground(dialogBg);
+        v.setPadding((int) dp(20), (int) dp(20), (int) dp(20), (int) dp(20));
 
         TextView tvTitle = v.findViewById(R.id.tvTitle);
         tvTitle.setText(editing ? "编辑心情" : "记 " + Dates.display(date) + " 的心情");
@@ -143,7 +149,7 @@ public class MoodDialogFragment extends DialogFragment {
             onIntensityChange(initPct);
         }
 
-        TextInputEditText etNote = v.findViewById(R.id.etNote);
+        EditText etNote = v.findViewById(R.id.etNote);
         if (note != null) etNote.setText(note);
         etNote.setBackground(Theme.createInputBg());
         etNote.setTextColor(Theme.INK);
@@ -211,6 +217,10 @@ public class MoodDialogFragment extends DialogFragment {
 
     private static int parseColor(String hex) {
         try { return Color.parseColor(hex); } catch (Exception e) { return Color.GRAY; }
+    }
+
+    private float dp(float v) {
+        return v * getResources().getDisplayMetrics().density;
     }
 
     @Override
