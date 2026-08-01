@@ -84,13 +84,13 @@ public class Theme {
     /** 根据背景色返回最佳文字色（浅底→深色字，深底→浅色字） */
     private static int textColorFor(int bg) {
         double lum = luminance(bg);
-        return lum > 0.5 ? parse("#2c2c2c") : parse("#ece7db");
+        return lum > 0.5 ? parse("#111111") : parse("#f0ece4");
     }
 
-    /** 根据背景色返回柔和文字色 */
+    /** 根据背景色返回柔和文字色（用于提示文字、次要信息） */
     private static int softTextColorFor(int bg) {
         double lum = luminance(bg);
-        return lum > 0.5 ? parse("#7a7a7a") : parse("#a09a8b");
+        return lum > 0.5 ? parse("#555555") : parse("#c0b8a8");
     }
 
     /** 分隔线颜色 = BG 与 CARD 的中间色，保证在任何主题下都能看见 */

@@ -1,12 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- 记心情弹窗：心情网格选择 + 强度滑动条 + 备注输入 + 保存
-     新样式：卡片风格、圆角、柔和阴影 -->
+<!-- 记心情弹窗：现代卡片风格 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:background="@android:color/transparent"
-    android:padding="16dp">
+    android:padding="20dp">
 
     <TextView
         android:id="@+id/tvTitle"
@@ -72,21 +71,21 @@
             android:progressBackgroundTint="@android:color/transparent" />
     </LinearLayout>
 
-    <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/noteLayout"
-        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+    <!-- 备注输入框 -->
+    <com.google.android.material.textfield.TextInputEditText
+        android:id="@+id/etNote"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="14dp"
-        android:hint="今天想说点什么（可选）">
-
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/etNote"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:maxLines="3"
-            android:inputType="textMultiLine" />
-    </com.google.android.material.textfield.TextInputLayout>
+        android:maxLines="3"
+        android:inputType="textMultiLine"
+        android:hint="今天想说点什么（可选）"
+        android:gravity="top"
+        android:padding="12dp"
+        android:minHeight="80dp"
+        android:textColor="@android:color/transparent"
+        android:textColorHint="@android:color/transparent"
+        android:textSize="14sp" />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -99,9 +98,10 @@
             android:id="@+id/btnCancel"
             style="@style/Widget.Material3.Button.TextButton"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="36dp"
             android:text="取消"
-            android:textColor="@android:color/transparent" />
+            android:textColor="@android:color/transparent"
+            android:textSize="14sp" />
 
         <Button
             android:id="@+id/btnSave"
