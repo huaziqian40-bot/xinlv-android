@@ -8,6 +8,7 @@ import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
+import android.text.InputFilter;
 import android.text.InputType;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -364,10 +365,11 @@ public class MeFragment extends BaseFragment implements Refreshable {
             presetRow.addView(b);
         }
         // 加号按钮：打开取色器（强调色）
-        Button plusBtn = new Button(requireContext());
+        TextView plusBtn = new TextView(requireContext());
         plusBtn.setText("＋");
         plusBtn.setTextColor(Theme.ACCENT);
-        plusBtn.setBackgroundColor(Color.TRANSPARENT);
+        plusBtn.setTextSize(20);
+        plusBtn.setGravity(Gravity.CENTER);
         plusBtn.setMinWidth(0); plusBtn.setMinimumWidth(0);
         plusBtn.setMinHeight(0); plusBtn.setMinimumHeight(0);
         plusBtn.setPadding(dp(12), dp(6), dp(12), dp(6));
@@ -379,7 +381,9 @@ public class MeFragment extends BaseFragment implements Refreshable {
                 if (getActivity() != null) getActivity().recreate();
             });
         });
-        plusBtn.setLayoutParams(new LinearLayout.LayoutParams(lpW(), lpW()));
+        LinearLayout.LayoutParams pp2 = new LinearLayout.LayoutParams(lpW(), lpW());
+        pp2.rightMargin = dp(8);
+        plusBtn.setLayoutParams(pp2);
         presetRow.addView(plusBtn);
         box.addView(presetRow);
 
@@ -476,24 +480,21 @@ public class MeFragment extends BaseFragment implements Refreshable {
         }
 
         // 第 5 个位置：加号按钮（圆角矩形），打开取色器
-        LinearLayout plusItem = new LinearLayout(requireContext());
-        plusItem.setGravity(Gravity.CENTER);
+        TextView plusBtn = new TextView(requireContext());
+        plusBtn.setText("＋");
+        plusBtn.setTextColor(Theme.ACCENT);
+        plusBtn.setTextSize(20);
+        plusBtn.setGravity(Gravity.CENTER);
         LinearLayout.LayoutParams plp = new LinearLayout.LayoutParams(0, swatchH, 1f);
-        plusItem.setLayoutParams(plp);
+        plusBtn.setLayoutParams(plp);
         GradientDrawable plusBg = new GradientDrawable();
         plusBg.setShape(GradientDrawable.RECTANGLE);
         plusBg.setCornerRadius(dp(8));
         plusBg.setColor(0x0A000000);
         plusBg.setStroke(dp(1), 0x22000000);
-        plusItem.setBackground(plusBg);
-        TextView plusTv = new TextView(requireContext());
-        plusTv.setText("＋");
-        plusTv.setTextColor(Theme.ACCENT);
-        plusTv.setTextSize(20);
-        plusTv.setGravity(Gravity.CENTER);
-        plusItem.addView(plusTv);
-        plusItem.setOnClickListener(v -> showColorPickerFor(label, curHex, presetHex, onApply));
-        swatches.addView(plusItem);
+        plusBtn.setBackground(plusBg);
+        plusBtn.setOnClickListener(v -> showColorPickerFor(label, curHex, presetHex, onApply));
+        swatches.addView(plusBtn);
 
         row.addView(swatches);
 
@@ -507,16 +508,46 @@ public class MeFragment extends BaseFragment implements Refreshable {
 
     /** 打开 HSV 取色器对话框 */
     private void showColorPickerFor(String label, String curHex, String presetHex, Consumer<String> onApply) {
-        ColorPickerView picker = new ColorPickerView(requireContext());
+        try {
+            ColorPickerView picker = new ColorPickerView(requireContext());
+            String initial = (curHex != null && !curHex.isEmpty()) ? curHex : presetHex;
+            picker.setColor(initial);
+            int pad = dp(20);
+            picker.setPadding(pad, pad, pad, pad);
+            new AlertDialog.Builder(requireContext())
+                    .setTitle("选择" + label)
+                    .setView(picker)
+                    .setPositiveButton("确定", (d, w) -> onApply.accept(picker.getHex()))
+                    .setNegativeButton("取消", null)
+                    .show();
+        } catch (Exception e) {
+            // 取色器异常兜底：直接显示 HEX 输入框
+            showHexInputDialog(label, curHex, presetHex, onApply);
+        }
+    }
+
+    /** 取色器异常时的兜底：HEX 输入框 */
+    private void showHexInputDialog(String label, String curHex, String presetHex, Consumer<String> onApply) {
         String initial = (curHex != null && !curHex.isEmpty()) ? curHex : presetHex;
-        picker.setColor(initial);
-        picker.setOnColorChangeListener((color, hex) -> { /* 实时预览由 picker 自身处理 */ });
-        int pad = dp(20);
-        picker.setPadding(pad, pad, pad, pad);
+        EditText input = new EditText(requireContext());
+        input.setText(initial);
+        input.setSelection(initial.length());
+        input.setFilters(new InputFilter[]{new InputFilter.LengthFilter(7)});
+        input.setTextColor(Theme.INK);
+        input.setBackground(Theme.createInputBg());
+        int pad = dp(16);
+        input.setPadding(pad, pad, pad, pad);
         new AlertDialog.Builder(requireContext())
-                .setTitle("选择" + label)
-                .setView(picker)
-                .setPositiveButton("确定", (d, w) -> onApply.accept(picker.getHex()))
+                .setTitle("输入 " + label + " HEX")
+                .setMessage("取色器不可用，请直接输入颜色代码，如 #FF6B6B")
+                .setView(input)
+                .setPositiveButton("确定", (d, w) -> {
+                    String hex = input.getText().toString().trim();
+                    if (hex.length() == 6) hex = "#" + hex;
+                    if (hex.length() == 7 && hex.startsWith("#")) {
+                        onApply.accept(hex);
+                    }
+                })
                 .setNegativeButton("取消", null)
                 .show();
     }
