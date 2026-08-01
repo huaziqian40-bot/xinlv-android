@@ -6,6 +6,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.Typeface;
+import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.text.InputFilter;
@@ -513,13 +514,69 @@ public class MeFragment extends BaseFragment implements Refreshable {
             String initial = (curHex != null && !curHex.isEmpty()) ? curHex : presetHex;
             picker.setColor(initial);
             int pad = dp(20);
-            picker.setPadding(pad, pad, pad, pad);
-            new AlertDialog.Builder(requireContext())
-                    .setTitle("选择" + label)
-                    .setView(picker)
-                    .setPositiveButton("确定", (d, w) -> onApply.accept(picker.getHex()))
-                    .setNegativeButton("取消", null)
-                    .show();
+            picker.setPadding(pad, 0, pad, 0);
+
+            // 标题行
+            TextView titleView = new TextView(requireContext());
+            titleView.setText("选择" + label);
+            titleView.setTextColor(Theme.INK);
+            titleView.setTextSize(18);
+            titleView.setTypeface(null, Typeface.BOLD);
+            titleView.setPadding(pad, pad, pad, 0);
+
+            // 底部按钮行
+            LinearLayout btnRow = new LinearLayout(requireContext());
+            btnRow.setOrientation(LinearLayout.HORIZONTAL);
+            btnRow.setGravity(Gravity.END);
+            btnRow.setPadding(pad, 0, pad, pad);
+
+            // 用 wrapper 卡片包裹所有内容
+            LinearLayout wrapper = new LinearLayout(requireContext());
+            wrapper.setOrientation(LinearLayout.VERTICAL);
+            wrapper.setBackground(createRoundedCard(Theme.CARD, dp(16)));
+            wrapper.addView(titleView);
+            wrapper.addView(picker);
+            wrapper.addView(btnRow);
+
+            final android.app.Dialog dialog = new android.app.Dialog(requireContext());
+            dialog.setContentView(wrapper);
+            if (dialog.getWindow() != null) {
+                dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+                dialog.getWindow().setLayout(
+                        (int) (getResources().getDisplayMetrics().widthPixels * 0.85),
+                        android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+                );
+            }
+
+            Button cancelBtn = new Button(requireContext());
+            cancelBtn.setText("取消");
+            cancelBtn.setTextColor(Theme.INK_SOFT);
+            cancelBtn.setTextSize(14);
+            cancelBtn.setBackgroundColor(Color.TRANSPARENT);
+            cancelBtn.setPadding(dp(12), dp(6), dp(12), dp(6));
+            cancelBtn.setOnClickListener(v -> dialog.dismiss());
+
+            Button okBtn = new Button(requireContext());
+            okBtn.setText("确定");
+            okBtn.setTextColor(Color.WHITE);
+            okBtn.setTextSize(14);
+            okBtn.setBackground(Theme.createPrimaryButton());
+            okBtn.setBackgroundTintList(null);
+            okBtn.setPadding(dp(20), dp(6), dp(20), dp(6));
+            okBtn.setOnClickListener(v -> {
+                onApply.accept(picker.getHex());
+                dialog.dismiss();
+            });
+
+            btnRow.addView(cancelBtn);
+            btnRow.addView(okBtn, new LinearLayout.LayoutParams(
+                    android.view.ViewGroup.LayoutParams.WRAP_CONTENT,
+                    android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+            ) {{
+                leftMargin = dp(8);
+            }});
+
+            dialog.show();
         } catch (Exception e) {
             // 取色器异常兜底：直接显示 HEX 输入框
             showHexInputDialog(label, curHex, presetHex, onApply);
@@ -734,6 +791,14 @@ public class MeFragment extends BaseFragment implements Refreshable {
 
     private int dp(int v) {
         return (int) (v * getResources().getDisplayMetrics().density + 0.5f);
+    }
+
+    /** 创建圆角卡片背景 drawable */
+    private static android.graphics.drawable.GradientDrawable createRoundedCard(int color, float radius) {
+        android.graphics.drawable.GradientDrawable gd = new android.graphics.drawable.GradientDrawable();
+        gd.setColor(color);
+        gd.setCornerRadius(radius);
+        return gd;
     }
 
     private static int parseColor(String hex) {

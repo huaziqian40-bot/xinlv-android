@@ -97,7 +97,8 @@
             android:padding="10dp"
             android:maxLines="3"
             android:inputType="textMultiLine|textCapSentences"
-            android:imeOptions="actionSend" />
+            android:imeOptions="actionSend"
+            android:textSize="14sp" />
 
         <Button
             android:id="@+id/btnSend"

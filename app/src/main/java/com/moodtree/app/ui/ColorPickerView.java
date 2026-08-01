@@ -106,8 +106,8 @@ public class ColorPickerView extends View {
 
         hexPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         hexPaint.setColor(Theme.INK_SOFT);
-        hexPaint.setTextSize(dp(14));
-        hexPaint.setTextAlign(Paint.Align.CENTER);
+        hexPaint.setTextSize(dp(18));
+        hexPaint.setTextAlign(Paint.Align.LEFT);
 
         bgPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         bgPaint.setColor(Theme.CARD);
@@ -244,9 +244,9 @@ public class ColorPickerView extends View {
         canvas.drawRoundRect(previewRect, cornerRadius, cornerRadius, previewPaint);
         canvas.drawRoundRect(previewRect, cornerRadius, cornerRadius, previewBorderPaint);
 
-        // HEX 文本
-        float hexX = previewRect.right + dp(12);
-        float hexY = previewRect.centerY() + dp(5);
+        // HEX 文本：放在预览色块右侧，足够间距
+        float hexX = previewRect.right + dp(16);
+        float hexY = previewRect.centerY() + dp(6);
         canvas.drawText(currentHex, hexX, hexY, hexPaint);
     }
 

@@ -3,6 +3,7 @@ package com.moodtree.app.ui;
 import android.app.Dialog;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
+import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.view.View;
@@ -163,6 +164,7 @@ public class MoodDialogFragment extends DialogFragment {
         btnCancel.setOnClickListener(b -> dismiss());
         Button btnSave = v.findViewById(R.id.btnSave);
         btnSave.setBackground(Theme.createPrimaryButton());
+        btnSave.setBackgroundTintList(null);
         btnSave.setOnClickListener(b -> {
             String key = moodAdapter.selectedKey();
             if (key == null) {
@@ -233,6 +235,8 @@ public class MoodDialogFragment extends DialogFragment {
             Window w = d.getWindow();
             int width = (int) (getResources().getDisplayMetrics().widthPixels * 0.92);
             w.setLayout(width, android.view.ViewGroup.LayoutParams.WRAP_CONTENT);
+            // 去掉 Dialog 默认的灰色窗口背景，防止圆角卡片四角露灰
+            w.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
             // 弹窗进入动画：缩放淡入
             w.setWindowAnimations(android.R.style.Animation_Dialog);
             // 手动播放缩放淡入动画
