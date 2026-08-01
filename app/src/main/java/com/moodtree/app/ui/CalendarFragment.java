@@ -262,6 +262,8 @@ public class CalendarFragment extends BaseFragment implements Refreshable {
                 if (!isAdded()) return;
                 tvMonth.setText(Dates.monthLabel(currentMonth));
                 adapter.setMonth(currentMonth, moodByDate);
+                // 恢复选中高亮
+                if (selectedDate != null) adapter.setSelectedDate(selectedDate);
                 // 刷新底部列表（如果当前选中日期仍在当月）
                 if (selectedDate != null && currentMonth.equals(YearMonth.from(selectedDate))) {
                     refreshDayEntries();
@@ -279,6 +281,7 @@ public class CalendarFragment extends BaseFragment implements Refreshable {
     /** 展开某日详情到底部区域 */
     private void showDay(LocalDate date) {
         selectedDate = date;
+        adapter.setSelectedDate(date);
         String iso = date.toString();
         tvDayTitle.setText(Dates.display(iso));
         // 更新添加按钮文案

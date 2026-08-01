@@ -18,6 +18,8 @@ import java.time.YearMonth;
 import java.util.HashMap;
 import java.util.Map;
 
+import android.graphics.Color;
+
 /** 日历网格适配器：周一为一周起点，前导空格补齐。每个格子：日期数字右上角 + 心情 emoji 居中。
  *  点格子始终展开该日详情。 */
 public class CalendarAdapter extends BaseAdapter {
@@ -37,6 +39,7 @@ public class CalendarAdapter extends BaseAdapter {
     private final Map<String, String> dateToMood = new HashMap<>();  // yyyy-MM-dd -> moodKey
     private OnCellClick clickListener;
     private YearMonth month;
+    private LocalDate selectedDate;
 
     public CalendarAdapter(LayoutInflater inflater) {
         this.inflater = inflater;
@@ -84,6 +87,12 @@ public class CalendarAdapter extends BaseAdapter {
 
     public void setClickListener(OnCellClick l) { this.clickListener = l; }
 
+    /** 设置当前选中的日期，刷新高亮 */
+    public void setSelectedDate(LocalDate date) {
+        this.selectedDate = date;
+        notifyDataSetChanged();
+    }
+
     @Override public int getCount() { return actualCount; }
     @Override public Object getItem(int position) { return cells[position]; }
     @Override public long getItemId(int position) { return position; }
@@ -108,12 +117,12 @@ public class CalendarAdapter extends BaseAdapter {
         }
 
         tvDay.setText(String.valueOf(c.date.getDayOfMonth()));
-        tvDay.setTextColor(c.isToday ? Theme.ACCENT : Theme.INK);
+        tvDay.setTextColor(c.isToday ? Color.WHITE : (c.date.equals(selectedDate) ? Theme.ACCENT : Theme.INK));
 
         if (c.moodKey != null) {
             MoodMeta m = MoodMeta.of(c.moodKey);
             tvDot.setText(m.emoji);
-            tvDot.setTextColor(Theme.INK);
+            tvDot.setTextColor(c.isToday ? Color.WHITE : Theme.INK);
             tvDot.setVisibility(View.VISIBLE);
         } else {
             tvDot.setVisibility(View.GONE);
@@ -121,9 +130,22 @@ public class CalendarAdapter extends BaseAdapter {
 
         // 选中/今天背景
         GradientDrawable gd = new GradientDrawable();
-        gd.setColor(Theme.CARD);
         gd.setCornerRadius(dp(6));
-        gd.setStroke(dp(1), c.isToday ? Theme.ACCENT : Theme.DIVIDER);
+
+        boolean isSelected = c.date.equals(selectedDate);
+
+        if (c.isToday) {
+            // 今天：整格填充按钮颜色
+            gd.setColor(Theme.ACCENT);
+            gd.setStroke(0, 0x00000000);
+        } else if (isSelected) {
+            // 选中但不是今天：边框为按钮颜色
+            gd.setColor(Theme.CARD);
+            gd.setStroke(dp(2), Theme.ACCENT);
+        } else {
+            gd.setColor(Theme.CARD);
+            gd.setStroke(dp(1), Theme.DIVIDER);
+        }
         convertView.setBackground(gd);
         convertView.setEnabled(true);
         convertView.setClickable(true);
