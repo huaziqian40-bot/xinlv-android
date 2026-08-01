@@ -88,6 +88,7 @@ public class ColorPickerView extends View {
         cornerRadius = dp(CORNER_RADIUS_DP);
 
         hueBarPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        svSquarePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         svWhitePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         svBlackPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         handlePaint = new Paint(Paint.ANTI_ALIAS_FLAG);

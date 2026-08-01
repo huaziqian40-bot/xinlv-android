@@ -438,16 +438,14 @@ public class MeFragment extends BaseFragment implements Refreshable {
         header.addView(tv);
         row.addView(header);
 
-        // 色板：4 个预设色 + 加号按钮（共 5 个位置）
+        // 色板：5 个圆角矩形等宽排列（4 预设色 + 加号），占满屏幕宽度
         LinearLayout swatches = new LinearLayout(requireContext());
         swatches.setOrientation(LinearLayout.HORIZONTAL);
-        swatches.setLayoutParams(lp(lpM(), lpW(), 0, 0, 0, dp(4)));
+        swatches.setLayoutParams(lp(lpM(), lpW(), 0, dp(4), 0, dp(4)));
 
         // 收集 4 个候选色：当前预设色 + 3 个其他预设的对应色
         java.util.List<String> candidates = new java.util.ArrayList<>();
-        // 当前预设色放第一个
         candidates.add(presetHex);
-        // 其他预设的对应色
         for (String[] p : Theme.PRESETS) {
             String hex2;
             if (label.contains("背景")) hex2 = p[3];
@@ -456,39 +454,46 @@ public class MeFragment extends BaseFragment implements Refreshable {
             if (!hex2.equals(presetHex)) candidates.add(hex2);
         }
         // 只取前 4 个
-        int count = 0;
-        for (String hex2 : candidates) {
-            if (count >= 4) break;
-            View swatch = new View(requireContext());
-            int sz = dp(28);
-            LinearLayout.LayoutParams slp = new LinearLayout.LayoutParams(sz, sz);
-            slp.rightMargin = dp(6);
-            swatch.setLayoutParams(slp);
-            GradientDrawable sgd = new GradientDrawable();
-            sgd.setShape(GradientDrawable.OVAL);
-            sgd.setColor(parseColor(hex2));
-            String fHex = hex2;
+        int swatchH = dp(40);
+        int gap = dp(4);
+        for (int i = 0; i < 4 && i < candidates.size(); i++) {
+            String hex2 = candidates.get(i);
+            LinearLayout item = new LinearLayout(requireContext());
+            item.setGravity(Gravity.CENTER);
+            LinearLayout.LayoutParams ilp = new LinearLayout.LayoutParams(0, swatchH, 1f);
+            if (i < 3) ilp.rightMargin = gap;
+            item.setLayoutParams(ilp);
+            GradientDrawable bg = new GradientDrawable();
+            bg.setShape(GradientDrawable.RECTANGLE);
+            bg.setCornerRadius(dp(8));
+            bg.setColor(parseColor(hex2));
             boolean isSelected = hex.equalsIgnoreCase(hex2);
-            sgd.setStroke(dp(2), isSelected ? Theme.INK : 0x22000000);
-            swatch.setBackground(sgd);
-            swatch.setOnClickListener(v -> onApply.accept(fHex));
-            swatches.addView(swatch);
-            count++;
+            bg.setStroke(dp(2), isSelected ? Theme.INK : 0x22000000);
+            item.setBackground(bg);
+            String fHex = hex2;
+            item.setOnClickListener(v -> onApply.accept(fHex));
+            swatches.addView(item);
         }
 
-        // 第 5 个位置：加号按钮，打开取色器
-        Button plusBtn = new Button(requireContext());
-        int sz = dp(28);
-        LinearLayout.LayoutParams slp = new LinearLayout.LayoutParams(sz, sz);
-        plusBtn.setLayoutParams(slp);
-        plusBtn.setText("＋");
-        plusBtn.setTextColor(Theme.ACCENT);
-        plusBtn.setBackgroundColor(Color.TRANSPARENT);
-        plusBtn.setMinWidth(0); plusBtn.setMinimumWidth(0);
-        plusBtn.setMinHeight(0); plusBtn.setMinimumHeight(0);
-        plusBtn.setPadding(0, 0, 0, 0);
-        plusBtn.setOnClickListener(v -> showColorPickerFor(label, curHex, presetHex, onApply));
-        swatches.addView(plusBtn);
+        // 第 5 个位置：加号按钮（圆角矩形），打开取色器
+        LinearLayout plusItem = new LinearLayout(requireContext());
+        plusItem.setGravity(Gravity.CENTER);
+        LinearLayout.LayoutParams plp = new LinearLayout.LayoutParams(0, swatchH, 1f);
+        plusItem.setLayoutParams(plp);
+        GradientDrawable plusBg = new GradientDrawable();
+        plusBg.setShape(GradientDrawable.RECTANGLE);
+        plusBg.setCornerRadius(dp(8));
+        plusBg.setColor(0x0A000000);
+        plusBg.setStroke(dp(1), 0x22000000);
+        plusItem.setBackground(plusBg);
+        TextView plusTv = new TextView(requireContext());
+        plusTv.setText("＋");
+        plusTv.setTextColor(Theme.ACCENT);
+        plusTv.setTextSize(20);
+        plusTv.setGravity(Gravity.CENTER);
+        plusItem.addView(plusTv);
+        plusItem.setOnClickListener(v -> showColorPickerFor(label, curHex, presetHex, onApply));
+        swatches.addView(plusItem);
 
         row.addView(swatches);
 
