@@ -93,6 +93,7 @@ public class MoodDialogFragment extends DialogFragment {
 
         TextView tvTitle = v.findViewById(R.id.tvTitle);
         tvTitle.setText(editing ? "编辑心情" : "记 " + Dates.display(date) + " 的心情");
+        tvTitle.setTextColor(Theme.INK);
 
         RecyclerView rv = v.findViewById(R.id.rvMoods);
         rv.setLayoutManager(new GridLayoutManager(getContext(), 4));
@@ -101,6 +102,11 @@ public class MoodDialogFragment extends DialogFragment {
         intensityRow = v.findViewById(R.id.intensityRow);
         intensitySeek = v.findViewById(R.id.intensitySeek);
         tvIntensityText = v.findViewById(R.id.tvIntensityText);
+
+        // 强度标签颜色
+        TextView tvIntensityLabel = v.findViewById(R.id.tvIntensityLabel);
+        tvIntensityLabel.setTextColor(Theme.INK);
+        tvIntensityText.setTextColor(Theme.INK_SOFT);
 
         // 选心情时显示滑动条并更新滑块颜色
         moodAdapter = new MoodPickAdapter(MoodMeta.all(), key -> {
@@ -138,12 +144,19 @@ public class MoodDialogFragment extends DialogFragment {
 
         TextInputEditText etNote = v.findViewById(R.id.etNote);
         if (note != null) etNote.setText(note);
+        etNote.setBackground(Theme.createInputBg());
+        etNote.setTextColor(Theme.INK);
+        etNote.setHintTextColor(Theme.INK_SOFT);
 
         Dialog d = new Dialog(requireContext());
         d.setContentView(v);
 
-        v.<Button>findViewById(R.id.btnCancel).setOnClickListener(b -> dismiss());
-        v.<Button>findViewById(R.id.btnSave).setOnClickListener(b -> {
+        Button btnCancel = v.findViewById(R.id.btnCancel);
+        btnCancel.setTextColor(Theme.INK_SOFT);
+        btnCancel.setOnClickListener(b -> dismiss());
+        Button btnSave = v.findViewById(R.id.btnSave);
+        btnSave.setBackground(Theme.createPrimaryButton());
+        btnSave.setOnClickListener(b -> {
             String key = moodAdapter.selectedKey();
             if (key == null) {
                 android.widget.Toast.makeText(getContext(), "先选一个心情吧", android.widget.Toast.LENGTH_SHORT).show();

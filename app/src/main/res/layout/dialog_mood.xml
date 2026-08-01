@@ -5,14 +5,14 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:background="@drawable/card_bg_flat"
+    android:background="@android:color/transparent"
     android:padding="16dp">
 
     <TextView
         android:id="@+id/tvTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textColor="@color/ink"
+        android:textColor="@android:color/transparent"
         android:textSize="18sp"
         android:textStyle="bold"
         android:layout_marginBottom="16dp" />
@@ -31,7 +31,7 @@
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:layout_marginTop="16dp"
-        android:background="@drawable/input_bg"
+        android:background="@android:color/transparent"
         android:padding="14dp"
         android:visibility="gone">
 
@@ -46,7 +46,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/intensity"
-                android:textColor="@color/ink"
+                android:textColor="@android:color/transparent"
                 android:textSize="14sp"
                 android:textStyle="bold" />
 
@@ -56,7 +56,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
                 android:text="@string/intensity_some"
-                android:textColor="@color/ink_soft"
+                android:textColor="@android:color/transparent"
                 android:textSize="14sp" />
         </LinearLayout>
 
@@ -67,12 +67,13 @@
             android:layout_marginTop="4dp"
             android:max="100"
             android:progress="50"
-            android:thumbTint="@color/accent"
-            android:progressTint="@color/accent"
-            android:progressBackgroundTint="@color/divider" />
+            android:thumbTint="@android:color/transparent"
+            android:progressTint="@android:color/transparent"
+            android:progressBackgroundTint="@android:color/transparent" />
     </LinearLayout>
 
     <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/noteLayout"
         style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -100,14 +101,14 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="取消"
-            android:textColor="@color/ink_soft" />
+            android:textColor="@android:color/transparent" />
 
         <Button
             android:id="@+id/btnSave"
             android:layout_width="wrap_content"
             android:layout_height="36dp"
             android:layout_marginStart="8dp"
-            android:background="@drawable/btn_primary"
+            android:background="@android:color/transparent"
             android:text="保存"
             android:textColor="@android:color/white"
             android:textSize="14sp"

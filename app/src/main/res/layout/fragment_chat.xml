@@ -5,15 +5,16 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="@color/bg">
+    android:background="@android:color/transparent">
 
     <!-- 顶部卡片 -->
     <LinearLayout
+        android:id="@+id/topCard"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:background="@drawable/card_bg_flat"
+        android:background="@android:color/transparent"
         android:layout_margin="8dp"
         android:layout_marginBottom="0dp"
         android:padding="14dp">
@@ -25,18 +26,20 @@
             android:orientation="vertical">
 
             <TextView
+                android:id="@+id/tvChatTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="AI 树洞"
-                android:textColor="@color/ink"
+                android:textColor="@android:color/transparent"
                 android:textSize="20sp"
                 android:textStyle="bold" />
 
             <TextView
+                android:id="@+id/tvChatSub"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="这里说的每句话都只属于你的树洞"
-                android:textColor="@color/ink_soft"
+                android:textColor="@android:color/transparent"
                 android:textSize="12sp"
                 android:layout_marginTop="2dp" />
         </LinearLayout>
@@ -47,8 +50,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="清空"
-            android:textColor="@color/ink_soft"
-            android:background="@drawable/input_bg"
+            android:textColor="@android:color/transparent"
+            android:background="@android:color/transparent"
             android:paddingHorizontal="12dp"
             android:paddingVertical="4dp" />
     </LinearLayout>
@@ -60,8 +63,8 @@
         android:padding="12dp"
         android:layout_marginHorizontal="12dp"
         android:layout_marginTop="4dp"
-        android:background="@drawable/input_bg"
-        android:textColor="@color/ink"
+        android:background="@android:color/transparent"
+        android:textColor="@android:color/transparent"
         android:textSize="13sp"
         android:visibility="gone" />
 
@@ -72,12 +75,14 @@
         android:layout_weight="1"
         android:clipToPadding="false"
         android:padding="4dp" />
+
     <LinearLayout
+        android:id="@+id/inputRow"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:background="@drawable/card_bg_flat"
+        android:background="@android:color/transparent"
         android:layout_margin="8dp"
         android:layout_marginTop="4dp"
         android:padding="6dp">
@@ -100,7 +105,7 @@
             android:layout_height="40dp"
             android:layout_marginStart="6dp"
             android:text="发送"
-            android:background="@drawable/btn_primary"
+            android:background="@android:color/transparent"
             android:textColor="@android:color/white"
             android:textSize="14sp"
             android:paddingHorizontal="16dp"

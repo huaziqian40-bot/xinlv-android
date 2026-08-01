@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="@color/bg">
+    android:background="@android:color/transparent">
 
     <!-- 内容区 + 情绪视觉叠层：FrameLayout 叠加多层，上层透明穿透不影响点击 -->
     <FrameLayout
@@ -40,7 +40,7 @@
         android:id="@+id/bottomNav"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@drawable/card_bg"
+        android:background="@android:color/transparent"
         app:menu="@menu/bottom_nav"
         app:labelVisibilityMode="labeled"
         android:elevation="8dp" />

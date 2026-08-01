@@ -2,11 +2,12 @@
 <!-- 某日详情列表单条：心情 emoji+名称 / 强度 / 时间 / 备注
      新样式：卡片风格、圆角、柔和阴影 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/entryRow"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="horizontal"
     android:gravity="center_vertical"
-    android:background="@drawable/card_bg_flat"
+    android:background="@android:color/transparent"
     android:layout_marginVertical="2dp"
     android:layout_marginHorizontal="2dp"
     android:padding="10dp">
@@ -17,7 +18,7 @@
         android:layout_height="38dp"
         android:gravity="center"
         android:textSize="22sp"
-        android:background="@drawable/emoji_bg"
+        android:background="@android:color/transparent"
         android:layout_marginEnd="10dp" />
 
     <LinearLayout
@@ -36,7 +37,7 @@
                 android:id="@+id/tvMood"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textColor="@color/ink"
+                android:textColor="@android:color/transparent"
                 android:textSize="15sp"
                 android:textStyle="bold" />
 
@@ -45,7 +46,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
-                android:textColor="@color/accent_d"
+                android:textColor="@android:color/transparent"
                 android:textSize="12sp"
                 android:visibility="gone" />
         </LinearLayout>
@@ -54,7 +55,7 @@
             android:id="@+id/tvNote"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textColor="@color/ink_soft"
+            android:textColor="@android:color/transparent"
             android:textSize="13sp"
             android:maxLines="2"
             android:ellipsize="end"
@@ -66,9 +67,9 @@
         android:id="@+id/tvTime"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textColor="@color/ink_soft"
+        android:textColor="@android:color/transparent"
         android:textSize="12sp"
-        android:background="@drawable/input_bg"
+        android:background="@android:color/transparent"
         android:paddingHorizontal="8dp"
         android:paddingVertical="2dp" />
 </LinearLayout>

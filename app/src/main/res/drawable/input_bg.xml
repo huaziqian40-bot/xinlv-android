@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- 输入框背景：圆角 + 浅底 -->
+<!-- 输入框背景：透明圆角，颜色由 Theme.java 运行时设置 -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="rectangle">
-    <solid android:color="#f0ede8" />
+    <solid android:color="@android:color/transparent" />
     <corners android:radius="12dp" />
     <padding android:left="14dp" android:top="12dp" android:right="14dp" android:bottom="12dp" />
 </shape>

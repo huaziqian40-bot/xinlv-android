@@ -162,6 +162,42 @@ public class LoginActivity extends AppCompatActivity {
 
     private void applyThemeToViews() {
         findViewById(android.R.id.content).setBackgroundColor(Theme.BG);
+        // 品牌名
+        TextView tvBrandName = findViewById(R.id.tvBrandName);
+        tvBrandName.setTextColor(Theme.INK);
+        TextView tvBrandSub = findViewById(R.id.tvBrandSub);
+        tvBrandSub.setTextColor(Theme.INK_SOFT);
+        // 表单卡片背景
+        View content = findViewById(R.id.content);
+        content.setBackground(Theme.createCardBg(getResources().getDisplayMetrics().density, 14));
+        // 输入框
+        EditText etUser = findViewById(R.id.etUsername);
+        etUser.setBackground(Theme.createInputBg());
+        etUser.setTextColor(Theme.INK);
+        etUser.setHintTextColor(Theme.INK_SOFT);
+        EditText etPass = findViewById(R.id.etPassword);
+        etPass.setBackground(Theme.createInputBg());
+        etPass.setTextColor(Theme.INK);
+        etPass.setHintTextColor(Theme.INK_SOFT);
+        EditText etPass2 = findViewById(R.id.etPassword2);
+        etPass2.setBackground(Theme.createInputBg());
+        etPass2.setTextColor(Theme.INK);
+        etPass2.setHintTextColor(Theme.INK_SOFT);
+        // 提交按钮
+        findViewById(R.id.btnSubmit).setBackground(Theme.createPrimaryButton());
+        // 同意文本
+        TextView tvAgreeText = findViewById(R.id.tvAgreeText);
+        tvAgreeText.setTextColor(Theme.INK_SOFT);
+        TextView tvDisclaimer = findViewById(R.id.tvDisclaimer);
+        tvDisclaimer.setTextColor(Theme.ACCENT);
+        // 状态文本
+        TextView tvStatus = findViewById(R.id.tvStatus);
+        tvStatus.setTextColor(Theme.INK_SOFT);
+        // 游客入口
+        TextView tvGuest = findViewById(R.id.tvGuest);
+        tvGuest.setTextColor(Theme.ACCENT);
+        TextView tvGuestHint = findViewById(R.id.tvGuestHint);
+        tvGuestHint.setTextColor(Theme.INK_SOFT);
     }
 
     private int dp(int v) {

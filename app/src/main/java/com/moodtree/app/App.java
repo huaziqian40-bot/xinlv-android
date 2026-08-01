@@ -31,7 +31,8 @@ public class App extends Application {
         });
 
         // 启动时应用保存的主题（纯内存静态字段，无数据库访问，主线程安全）
-        Theme.apply(config.themeId(), config.accent());
+        // 使用 3 色自定义：bg/card/accent，空串 = 用预设值
+        Theme.apply(config.themeId(), config.themeBg(), config.themeCard(), config.themeAccent());
     }
 
     public Config config() { return config; }

@@ -4,7 +4,7 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/bg"
+    android:background="@android:color/transparent"
     android:fillViewport="true">
 
     <LinearLayout
@@ -23,20 +23,22 @@
             android:layout_marginTop="20dp" />
 
         <TextView
+            android:id="@+id/tvBrandName"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="心履"
             android:textSize="24sp"
             android:textStyle="bold"
-            android:textColor="@color/ink"
+            android:textColor="@android:color/transparent"
             android:layout_marginTop="6dp" />
 
         <TextView
+            android:id="@+id/tvBrandSub"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="把心情种下，让它慢慢发芽"
             android:textSize="13sp"
-            android:textColor="@color/ink_soft"
+            android:textColor="@android:color/transparent"
             android:layout_marginBottom="24dp" />
 
         <!-- 表单卡片 -->
@@ -45,7 +47,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:background="@drawable/card_bg"
+            android:background="@android:color/transparent"
             android:padding="20dp">
 
             <!-- 登录 / 注册 切换 -->
@@ -92,6 +94,7 @@
                 android:background="@drawable/input_bg"
                 android:padding="14dp"
                 android:textSize="14sp"
+                android:textColorHint="@android:color/transparent"
                 android:layout_marginBottom="12dp" />
 
             <EditText
@@ -104,6 +107,7 @@
                 android:background="@drawable/input_bg"
                 android:padding="14dp"
                 android:textSize="14sp"
+                android:textColorHint="@android:color/transparent"
                 android:layout_marginBottom="12dp" />
 
             <EditText
@@ -116,6 +120,7 @@
                 android:background="@drawable/input_bg"
                 android:padding="14dp"
                 android:textSize="14sp"
+                android:textColorHint="@android:color/transparent"
                 android:visibility="gone" />
 
             <LinearLayout
@@ -134,10 +139,11 @@
                     android:layout_height="wrap_content" />
 
                 <TextView
+                    android:id="@+id/tvAgreeText"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="我已阅读并同意"
-                    android:textColor="@color/ink"
+                    android:textColor="@android:color/transparent"
                     android:textSize="13sp" />
 
                 <TextView
@@ -145,7 +151,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="《免责声明》"
-                    android:textColor="@color/accent_d"
+                    android:textColor="@android:color/transparent"
                     android:textSize="13sp"
                     android:padding="4dp" />
             </LinearLayout>
@@ -156,7 +162,7 @@
                 android:layout_height="44dp"
                 android:text="登 录"
                 android:textSize="15sp"
-                android:background="@drawable/btn_primary"
+                android:background="@android:color/transparent"
                 android:textColor="@android:color/white"
                 android:stateListAnimator="@null" />
 
@@ -165,7 +171,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="center"
-                android:textColor="@color/ink_soft"
+                android:textColor="@android:color/transparent"
                 android:textSize="13sp"
                 android:layout_marginTop="12dp" />
         </LinearLayout>
@@ -176,16 +182,17 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="不想注册？先随便逛逛"
-            android:textColor="@color/accent"
+            android:textColor="@android:color/transparent"
             android:textSize="14sp"
             android:padding="14dp"
             android:layout_marginTop="16dp" />
 
         <TextView
+            android:id="@+id/tvGuestHint"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="游客的数据只保存在这台设备，登录后自动同步到云端"
-            android:textColor="@color/ink_soft"
+            android:textColor="@android:color/transparent"
             android:textSize="11sp"
             android:gravity="center"
             android:paddingHorizontal="16dp" />

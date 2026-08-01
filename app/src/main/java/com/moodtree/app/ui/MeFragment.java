@@ -35,6 +35,7 @@ import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
 
 /** 我的：连胜/徽章/总记录（在线 profile，离线用缓存；游客用本机统计）+ 设置区
  *  （主题预设 + 强调色取色 + 服务器地址 + 刷新目录 + 退出登录）。对齐 Windows MeView。 */
@@ -275,33 +276,11 @@ public class MeFragment extends BaseFragment implements Refreshable {
         }
         box.addView(presetRow);
 
-        // 强调色取色
-        box.addView(label("强调色"));
-        LinearLayout swatchRow = new LinearLayout(requireContext());
-        swatchRow.setOrientation(LinearLayout.HORIZONTAL);
-        swatchRow.setLayoutParams(lp(lpM(), lpW(), 0, dp(6), 0, dp(6)));
-        for (String hex : ACCENT_SWATCHES) {
-            View dot = new View(requireContext());
-            int sz = dp(28);
-            LinearLayout.LayoutParams dotLp = new LinearLayout.LayoutParams(sz, sz);
-            dotLp.rightMargin = dp(8);
-            dot.setLayoutParams(dotLp);
-            GradientDrawable gd = new GradientDrawable();
-            gd.setColor(parseColor(hex));
-            gd.setShape(GradientDrawable.OVAL);
-            gd.setStroke(dp(2), app().config().accent().equalsIgnoreCase(hex) ? Theme.INK : 0x33000000);
-            dot.setBackground(gd);
-            dot.setOnClickListener(v -> applyTheme(app().config().themeId(), hex));
-            swatchRow.addView(dot);
-        }
-        Button custom = ghostBtn("自定义…");
-        custom.setOnClickListener(v -> askCustomAccent());
-        swatchRow.addView(custom);
-        box.addView(swatchRow);
-
-        Button resetAccent = ghostBtn("恢复默认强调色");
-        resetAccent.setOnClickListener(v -> applyTheme(app().config().themeId(), ""));
-        box.addView(resetAccent);
+        // 主题调整入口（替代旧版强调色取色器）
+        box.addView(label("主题调整"));
+        Button themeEditorBtn = ghostBtn("自定义背景、卡片、强调色 →");
+        themeEditorBtn.setOnClickListener(v -> showThemeEditor());
+        box.addView(themeEditorBtn);
 
         // 服务器地址
         box.addView(label("服务器地址"));
@@ -312,7 +291,9 @@ public class MeFragment extends BaseFragment implements Refreshable {
         EditText etServer = new EditText(requireContext());
         etServer.setText(app().config().serverBase());
         etServer.setInputType(InputType.TYPE_TEXT_VARIATION_URI);
-        etServer.setBackgroundResource(R.drawable.input_bg);
+        etServer.setBackground(Theme.createInputBg());
+        etServer.setTextColor(Theme.INK);
+        etServer.setHintTextColor(Theme.INK_SOFT);
         etServer.setSingleLine(true);
         etServer.setTextSize(13);
         etServer.setPadding(dp(10), dp(8), dp(10), dp(8));
@@ -344,7 +325,7 @@ public class MeFragment extends BaseFragment implements Refreshable {
             Button logout = new Button(requireContext());
             logout.setText("退出登录");
             logout.setTextColor(Theme.DANGER);
-            logout.setBackgroundResource(R.drawable.btn_outline);
+            logout.setBackground(Theme.createOutlineButton());
             logout.setTextSize(14);
             logout.setPadding(dp(20), dp(12), dp(20), dp(12));
             LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(lpM(), lpW());
@@ -360,8 +341,194 @@ public class MeFragment extends BaseFragment implements Refreshable {
     private void applyTheme(String id, String accent) {
         app().config().setThemeId(id);
         app().config().setAccent(accent);
-        Theme.apply(id, accent);
+        Theme.apply(id, null, null, accent);
         if (getActivity() != null) getActivity().recreate();   // 重建生效
+    }
+
+    private void applyTheme(String id, String bgHex, String cardHex, String accentHex) {
+        app().config().setThemeId(id);
+        app().config().setThemeBg(bgHex);
+        app().config().setThemeCard(cardHex);
+        app().config().setAccent(accentHex);
+        Theme.apply(id, bgHex, cardHex, accentHex);
+        if (getActivity() != null) getActivity().recreate();
+    }
+
+    // ========== 主题编辑器（3 色自定义） ==========
+
+    /** 打开主题调整对话框：4 预设 + 3 色自定义（背景/卡片/强调色） */
+    private void showThemeEditor() {
+        LinearLayout body = new LinearLayout(requireContext());
+        body.setOrientation(LinearLayout.VERTICAL);
+        int pad = dp(20);
+        body.setPadding(pad, pad, pad, pad);
+
+        // 1. 预设选择
+        TextView tvPreset = new TextView(requireContext());
+        tvPreset.setText("选择预设");
+        tvPreset.setTextColor(Theme.INK);
+        tvPreset.setTextSize(16);
+        tvPreset.setTypeface(null, Typeface.BOLD);
+        body.addView(tvPreset);
+
+        LinearLayout presetRow = new LinearLayout(requireContext());
+        presetRow.setOrientation(LinearLayout.HORIZONTAL);
+        presetRow.setLayoutParams(lp(lpM(), lpW(), 0, dp(8), 0, dp(12)));
+        String curId = app().config().themeId();
+        for (String[] preset : Theme.PRESETS) {
+            String id = preset[0], name = preset[1];
+            Button b = new Button(requireContext());
+            b.setText("● " + name);
+            b.setTextColor(id.equals(curId) ? Theme.ACCENT : Theme.INK);
+            b.setBackgroundColor(Color.TRANSPARENT);
+            b.setMinWidth(0); b.setMinimumWidth(0);
+            b.setMinHeight(0); b.setMinimumHeight(0);
+            b.setPadding(dp(12), dp(6), dp(12), dp(6));
+            b.setOnClickListener(v -> {
+                // 应用预设但不关闭，让用户再微调
+                app().config().setThemeId(id);
+                // 清掉自定义颜色，回到预设
+                app().config().setThemeBg("");
+                app().config().setThemeCard("");
+                app().config().setAccent("");
+                Theme.applyPreset(id);
+                if (getActivity() != null) getActivity().recreate();
+            });
+            LinearLayout.LayoutParams pp = new LinearLayout.LayoutParams(lpW(), lpW());
+            pp.rightMargin = dp(8);
+            b.setLayoutParams(pp);
+            presetRow.addView(b);
+        }
+        body.addView(presetRow);
+
+        // 2. 三色编辑区
+        body.addView(colorEditRow("🎨 背景色", app().config().themeBg(),
+                Theme.presetBg, Theme.BG, hex -> {
+                    app().config().setThemeBg(hex);
+                    Theme.apply(app().config().themeId(), hex, app().config().themeCard(), app().config().accent());
+                    if (getActivity() != null) getActivity().recreate();
+                }));
+        body.addView(colorEditRow("📦 卡片色", app().config().themeCard(),
+                Theme.presetCard, Theme.CARD, hex -> {
+                    app().config().setThemeCard(hex);
+                    Theme.apply(app().config().themeId(), app().config().themeBg(), hex, app().config().accent());
+                    if (getActivity() != null) getActivity().recreate();
+                }));
+        body.addView(colorEditRow("🔘 强调色", app().config().accent(),
+                Theme.presetAccent, Theme.ACCENT, hex -> {
+                    app().config().setAccent(hex);
+                    Theme.apply(app().config().themeId(), app().config().themeBg(), app().config().themeCard(), hex);
+                    if (getActivity() != null) getActivity().recreate();
+                }));
+
+        new AlertDialog.Builder(requireContext())
+                .setTitle("主题调整")
+                .setView(body)
+                .setPositiveButton("完成", null)
+                .show();
+    }
+
+    /** 一行颜色编辑区：标签 + 9 色板 + 自定义按钮 */
+    private LinearLayout colorEditRow(String label, String curHex, String presetHex, int currentColor,
+                                      Consumer<String> onApply) {
+        LinearLayout row = new LinearLayout(requireContext());
+        row.setOrientation(LinearLayout.VERTICAL);
+        row.setLayoutParams(lp(lpM(), lpW(), 0, dp(6), 0, dp(6)));
+
+        // 标签：当前色预览圆点 + 名称 + HEX
+        LinearLayout header = new LinearLayout(requireContext());
+        header.setOrientation(LinearLayout.HORIZONTAL);
+        header.setGravity(Gravity.CENTER_VERTICAL);
+        header.setLayoutParams(lp(lpM(), lpW(), 0, 0, 0, dp(4)));
+
+        View dot = new View(requireContext());
+        int dotSz = dp(16);
+        LinearLayout.LayoutParams dotLp = new LinearLayout.LayoutParams(dotSz, dotSz);
+        dotLp.rightMargin = dp(8);
+        dot.setLayoutParams(dotLp);
+        GradientDrawable dotGd = new GradientDrawable();
+        dotGd.setShape(GradientDrawable.OVAL);
+        dotGd.setColor(currentColor);
+        dot.setBackground(dotGd);
+        header.addView(dot);
+
+        String hex = (curHex != null && !curHex.isEmpty()) ? curHex : presetHex;
+        TextView tv = new TextView(requireContext());
+        tv.setText(label + "  " + hex);
+        tv.setTextColor(Theme.INK);
+        tv.setTextSize(13);
+        header.addView(tv);
+        row.addView(header);
+
+        // 色板：预设色 + 常见色
+        LinearLayout swatches = new LinearLayout(requireContext());
+        swatches.setOrientation(LinearLayout.HORIZONTAL);
+        swatches.setLayoutParams(lp(lpM(), lpW(), 0, 0, 0, dp(4)));
+
+        // 收集候选色：当前预设色 + 各预设的对应色 + 常用色
+        java.util.Set<String> candidates = new java.util.LinkedHashSet<>();
+        // 当前预设色
+        candidates.add(presetHex);
+        // 所有预设的对应色
+        for (String[] p : Theme.PRESETS) {
+            String hex2;
+            if (label.contains("背景")) hex2 = p[3];
+            else if (label.contains("卡片")) hex2 = p[4];
+            else hex2 = p[5];
+            candidates.add(hex2);
+        }
+        // 常用色
+        String[] extras = label.contains("强调")
+                ? new String[]{"#7d9b76", "#5ea07c", "#d18a9a", "#7FA6E8", "#FF9F68", "#9BD1C6", "#F7A6C4", "#E8736B", "#8E94B8"}
+                : new String[]{"#f6f1e7", "#26241f", "#eef6f1", "#faf0f2", "#ffffff", "#f0f0f0", "#333333", "#2c2c2c", "#ece7db"};
+        for (String e : extras) candidates.add(e);
+
+        for (String hex2 : candidates) {
+            View swatch = new View(requireContext());
+            int sz = dp(28);
+            LinearLayout.LayoutParams slp = new LinearLayout.LayoutParams(sz, sz);
+            slp.rightMargin = dp(6);
+            swatch.setLayoutParams(slp);
+            GradientDrawable sgd = new GradientDrawable();
+            sgd.setShape(GradientDrawable.OVAL);
+            sgd.setColor(parseColor(hex2));
+            String fHex = hex2;
+            // 边框：选中色高亮
+            boolean isSelected = hex.equalsIgnoreCase(hex2);
+            sgd.setStroke(dp(2), isSelected ? Theme.INK : 0x22000000);
+            swatch.setBackground(sgd);
+            swatch.setOnClickListener(v -> onApply.accept(fHex));
+            swatches.addView(swatch);
+        }
+        row.addView(swatches);
+
+        // 自定义按钮
+        Button customBtn = ghostBtn("自定义…");
+        customBtn.setOnClickListener(v -> showColorPickerFor(label, curHex, presetHex, onApply));
+        row.addView(customBtn);
+
+        // 恢复默认
+        Button resetBtn = ghostBtn("恢复预设");
+        resetBtn.setOnClickListener(v -> onApply.accept(""));
+        row.addView(resetBtn);
+
+        return row;
+    }
+
+    /** 打开 HSV 取色器对话框 */
+    private void showColorPickerFor(String label, String curHex, String presetHex, Consumer<String> onApply) {
+        ColorPickerView picker = new ColorPickerView(requireContext());
+        String initial = (curHex != null && !curHex.isEmpty()) ? curHex : presetHex;
+        picker.setColor(initial);
+        picker.setOnColorChangeListener((color, hex) -> { /* 实时预览由 picker 自身处理 */ });
+        int pad = dp(20);
+        picker.setPadding(pad, pad, pad, pad);
+        new AlertDialog.Builder(requireContext())
+                .setTitle("选择" + label)
+                .setView(picker)
+                .setPositiveButton("确定", (d, w) -> onApply.accept(picker.getHex()))
+                .setNegativeButton("取消", null)
+                .show();
     }
 
     private void askCustomAccent() {
@@ -501,7 +668,7 @@ public class MeFragment extends BaseFragment implements Refreshable {
     private LinearLayout card() {
         LinearLayout box = new LinearLayout(requireContext());
         box.setOrientation(LinearLayout.VERTICAL);
-        box.setBackgroundResource(R.drawable.card_bg_flat);
+        box.setBackground(Theme.createCardBg(getResources().getDisplayMetrics().density, 14));
         int pad = dp(16);
         box.setPadding(pad, pad, pad, pad);
         box.setLayoutParams(lp(lpM(), lpW(), 0, 0, 0, dp(10)));
@@ -530,7 +697,7 @@ public class MeFragment extends BaseFragment implements Refreshable {
     private Button primaryBtn(String text) {
         Button b = new Button(requireContext());
         b.setText(text);
-        b.setBackgroundResource(R.drawable.btn_primary);
+        b.setBackground(Theme.createPrimaryButton());
         b.setTextColor(Color.WHITE);
         b.setTextSize(15);
         b.setMinWidth(0); b.setMinimumWidth(0);

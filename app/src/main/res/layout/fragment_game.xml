@@ -3,7 +3,7 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#faf8f5">
+    android:background="@android:color/transparent">
 
     <WebView
         android:id="@+id/gameWebView"

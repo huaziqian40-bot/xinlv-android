@@ -25,6 +25,7 @@ public class GameFragment extends BaseFragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
         View root = inflater.inflate(R.layout.fragment_game, container, false);
+        themeBackground(root);
         webView = root.findViewById(R.id.gameWebView);
 
         WebSettings ws = webView.getSettings();

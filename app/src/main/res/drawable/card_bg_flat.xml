@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- 卡片背景：纯色圆角，无阴影（用于日历底部面板，避免阴影造成视觉间隙） -->
+<!-- 卡片背景：透明圆角，无阴影（用于日历底部面板，避免阴影造成视觉间隙） -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="rectangle">
-    <solid android:color="@color/card" />
+    <solid android:color="@android:color/transparent" />
     <corners android:radius="14dp" />
 </shape>

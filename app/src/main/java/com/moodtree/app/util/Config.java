@@ -44,6 +44,17 @@ public class Config {
     public String accent() { return prefs.getString("accent", ""); }
     public void setAccent(String hex) { prefs.edit().putString("accent", hex == null ? "" : hex).apply(); }
 
+    /** 3 色自定义：背景色 / 卡片色 / 强调色
+     *  空串 = 用预设默认值；非空 = 用户自定义的 #RRGGBB */
+    public String themeBg() { return prefs.getString("themeBg", ""); }
+    public void setThemeBg(String hex) { prefs.edit().putString("themeBg", hex == null ? "" : hex).apply(); }
+
+    public String themeCard() { return prefs.getString("themeCard", ""); }
+    public void setThemeCard(String hex) { prefs.edit().putString("themeCard", hex == null ? "" : hex).apply(); }
+
+    public String themeAccent() { return prefs.getString("themeAccent", ""); }
+    public void setThemeAccent(String hex) { prefs.edit().putString("themeAccent", hex == null ? "" : hex).apply(); }
+
     /** 设备备注：登录时上报给服务端，方便用户在多台设备间区分令牌 */
     public String device() {
         String d = prefs.getString("device", "").trim();

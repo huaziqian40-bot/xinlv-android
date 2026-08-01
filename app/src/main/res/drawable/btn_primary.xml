@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- 主按钮背景：圆角 + 强调色 -->
+<!-- 主按钮背景：透明圆角，颜色由 Theme.java 运行时设置 -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="rectangle">
-    <solid android:color="@color/accent" />
+    <solid android:color="@android:color/transparent" />
     <corners android:radius="12dp" />
 </shape>

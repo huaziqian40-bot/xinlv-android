@@ -75,6 +75,16 @@ public class ChatFragment extends BaseFragment implements Refreshable {
         rv.setLayoutManager(new LinearLayoutManager(getContext()));
         rv.setAdapter(adapter);
 
+        // 主题：输入框、按钮、横幅
+        etInput.setBackground(Theme.createInputBg());
+        etInput.setTextColor(Theme.INK);
+        etInput.setHintTextColor(Theme.INK_SOFT);
+        btnSend.setBackground(Theme.createPrimaryButton());
+        btnSend.setTextColor(Color.WHITE);
+        btnClear.setTextColor(Theme.ACCENT);
+        tvBanner.setBackground(Theme.createCardBg(getResources().getDisplayMetrics().density, 10));
+        tvBanner.setTextColor(Theme.INK);
+
         btnSend.setOnClickListener(v -> send());
         btnClear.setOnClickListener(v -> clearHistory());
         return root;

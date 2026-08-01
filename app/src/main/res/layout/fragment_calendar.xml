@@ -3,7 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="@color/bg"
+    android:background="@android:color/transparent"
     android:clipChildren="false">
 
     <!-- ========= 上半部分：日历网格（固定大小，不可滚动）= wrap_content 随正方形格子撑开 ========= -->
@@ -30,7 +30,7 @@
                 android:textSize="22sp"
                 android:gravity="center"
                 android:padding="0dp"
-                android:textColor="@color/ink" />
+                android:textColor="@android:color/transparent" />
 
             <TextView
                 android:id="@+id/tvMonth"
@@ -38,7 +38,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:gravity="center"
-                android:textColor="@color/ink"
+                android:textColor="@android:color/transparent"
                 android:textSize="18sp"
                 android:textStyle="bold" />
 
@@ -50,7 +50,7 @@
                 android:textSize="22sp"
                 android:gravity="center"
                 android:padding="0dp"
-                android:textColor="@color/ink" />
+                android:textColor="@android:color/transparent" />
         </LinearLayout>
 
         <!-- 视图切换标签 -->
@@ -70,7 +70,7 @@
                 android:paddingVertical="3dp"
                 android:text="月"
                 android:textSize="14sp"
-                android:textColor="@color/ink_soft"
+                android:textColor="@android:color/transparent"
                 android:gravity="center" />
 
             <TextView
@@ -81,7 +81,7 @@
                 android:paddingVertical="3dp"
                 android:text="周"
                 android:textSize="14sp"
-                android:textColor="@color/ink_soft"
+                android:textColor="@android:color/transparent"
                 android:gravity="center" />
 
             <TextView
@@ -92,7 +92,7 @@
                 android:paddingVertical="3dp"
                 android:text="年"
                 android:textSize="14sp"
-                android:textColor="@color/ink_soft"
+                android:textColor="@android:color/transparent"
                 android:gravity="center" />
         </LinearLayout>
 
@@ -103,7 +103,7 @@
             android:layout_height="wrap_content"
             android:gravity="center"
             android:paddingVertical="2dp"
-            android:textColor="@color/ink_soft"
+            android:textColor="@android:color/transparent"
             android:textSize="11sp"
             android:visibility="gone" />
 
@@ -164,7 +164,7 @@
                     android:textSize="20sp"
                     android:gravity="center"
                     android:padding="0dp"
-                    android:textColor="@color/ink" />
+                    android:textColor="@android:color/transparent" />
 
                 <TextView
                     android:id="@+id/tvWeekTitle"
@@ -172,7 +172,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:gravity="center"
-                    android:textColor="@color/ink"
+                    android:textColor="@android:color/transparent"
                     android:textSize="13sp"
                     android:textStyle="bold" />
 
@@ -184,7 +184,7 @@
                     android:textSize="20sp"
                     android:gravity="center"
                     android:padding="0dp"
-                    android:textColor="@color/ink" />
+                    android:textColor="@android:color/transparent" />
             </LinearLayout>
 
             <ScrollView
@@ -224,7 +224,7 @@
                     android:textSize="20sp"
                     android:gravity="center"
                     android:padding="0dp"
-                    android:textColor="@color/ink" />
+                    android:textColor="@android:color/transparent" />
 
                 <TextView
                     android:id="@+id/tvYearTitle"
@@ -232,7 +232,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:gravity="center"
-                    android:textColor="@color/ink"
+                    android:textColor="@android:color/transparent"
                     android:textSize="15sp"
                     android:textStyle="bold" />
 
@@ -244,7 +244,7 @@
                     android:textSize="20sp"
                     android:gravity="center"
                     android:padding="0dp"
-                    android:textColor="@color/ink" />
+                    android:textColor="@android:color/transparent" />
             </LinearLayout>
 
             <ScrollView
@@ -264,11 +264,12 @@
     <!-- ========= 下半部分：当天心情记录（可滚动，填充剩余空间） ========= -->
 
     <FrameLayout
+        android:id="@+id/dayPanel"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
         android:layout_marginTop="8dp"
-        android:background="@drawable/card_bg_bottom"
+        android:background="@android:color/transparent"
         android:clipChildren="false">
 
         <LinearLayout
@@ -284,7 +285,7 @@
             android:layout_height="wrap_content"
             android:padding="10dp"
             android:paddingBottom="4dp"
-            android:textColor="@color/ink"
+            android:textColor="@android:color/transparent"
             android:textSize="15sp"
             android:textStyle="bold" />
 
@@ -306,7 +307,7 @@
             android:layout_gravity="bottom"
             android:text="＋ 记今天的心情"
             android:textSize="15sp"
-            android:background="@drawable/btn_primary"
+            android:background="@android:color/transparent"
             android:textColor="@android:color/white"
             android:padding="12dp"
             android:layout_margin="10dp"

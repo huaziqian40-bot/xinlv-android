@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.moodtree.app.R;
 import com.moodtree.app.db.MoodEntry;
 import com.moodtree.app.model.MoodMeta;
+import com.moodtree.app.model.Theme;
 import com.moodtree.app.util.Dates;
 
 import java.util.ArrayList;
@@ -51,7 +52,17 @@ public class DayEntriesAdapter extends RecyclerView.Adapter<DayEntriesAdapter.VH
     public VH onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View v = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.item_day_entry, parent, false);
-        return new VH(v);
+        VH h = new VH(v);
+        // 主题：item 背景、文字颜色、emoji 底色
+        v.setBackground(Theme.createCardBg(
+                v.getContext().getResources().getDisplayMetrics().density, 10));
+        h.emoji.setBackground(Theme.createEmojiBg());
+        h.time.setBackground(Theme.createInputBg());
+        h.time.setTextColor(Theme.INK_SOFT);
+        h.mood.setTextColor(Theme.INK);
+        h.intensity.setTextColor(Theme.INK_SOFT);
+        h.note.setTextColor(Theme.INK);
+        return h;
     }
 
     @Override

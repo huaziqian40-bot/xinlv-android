@@ -11,6 +11,7 @@ import com.moodtree.app.App;
 import com.moodtree.app.R;
 import com.moodtree.app.db.MoodEntry;
 import com.moodtree.app.model.MoodMeta;
+import com.moodtree.app.model.Theme;
 import com.moodtree.app.sync.SyncEngine;
 import com.moodtree.app.util.Bg;
 
@@ -39,6 +40,10 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
         setContentView(R.layout.activity_main);
+        // 主题：根背景 + 底部导航栏背景
+        findViewById(android.R.id.content).setBackgroundColor(Theme.BG);
+        BottomNavigationView nav = findViewById(R.id.bottomNav);
+        nav.setBackgroundColor(Theme.CARD);
         // 顶部避让状态栏（只给内容容器加顶部 padding，底部导航栏仍贴系统底）
         com.moodtree.app.util.Insets.applyTop(findViewById(R.id.fragmentContainer));
 
@@ -72,7 +77,6 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
-        BottomNavigationView nav = findViewById(R.id.bottomNav);
         // 页签顺序（用于确定切换方向）
         final int[] TAB_ORDER = {R.id.nav_calendar, R.id.nav_recommend, R.id.nav_chat, R.id.nav_game, R.id.nav_me};
         nav.setOnItemSelectedListener(item -> {
