@@ -83,6 +83,12 @@ public class CalendarFragment extends BaseFragment implements Refreshable {
             String targetDate = selectedDate != null ? selectedDate.toString() : Dates.today();
             openNewMood(targetDate);
         });
+        // 主题化记心情按钮
+        Button btnAddMood = root.findViewById(R.id.btnAddMood);
+        btnAddMood.setBackground(Theme.createPrimaryButton());
+        btnAddMood.setBackgroundTintList(null);
+        btnAddMood.setTextColor(Color.WHITE);
+        btnAddMood.setStateListAnimator(null);
 
         RecyclerView rvDay = root.findViewById(R.id.rvDayEntries);
         rvDay.setLayoutManager(new LinearLayoutManager(getContext()));

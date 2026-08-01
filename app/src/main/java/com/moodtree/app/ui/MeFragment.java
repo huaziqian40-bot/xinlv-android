@@ -406,7 +406,7 @@ public class MeFragment extends BaseFragment implements Refreshable {
         return box;
     }
 
-    /** 一行颜色编辑区：标签 + 9 色板 + 自定义按钮 */
+    /** 一行颜色编辑区：标签 + 4 色板 + 加号按钮（打开取色器） */
     private LinearLayout colorEditRow(String label, String curHex, String presetHex, int currentColor,
                                       Consumer<String> onApply) {
         LinearLayout row = new LinearLayout(requireContext());
@@ -438,30 +438,27 @@ public class MeFragment extends BaseFragment implements Refreshable {
         header.addView(tv);
         row.addView(header);
 
-        // 色板：预设色 + 常见色
+        // 色板：4 个预设色 + 加号按钮（共 5 个位置）
         LinearLayout swatches = new LinearLayout(requireContext());
         swatches.setOrientation(LinearLayout.HORIZONTAL);
         swatches.setLayoutParams(lp(lpM(), lpW(), 0, 0, 0, dp(4)));
 
-        // 收集候选色：当前预设色 + 各预设的对应色 + 常用色
-        java.util.Set<String> candidates = new java.util.LinkedHashSet<>();
-        // 当前预设色
+        // 收集 4 个候选色：当前预设色 + 3 个其他预设的对应色
+        java.util.List<String> candidates = new java.util.ArrayList<>();
+        // 当前预设色放第一个
         candidates.add(presetHex);
-        // 所有预设的对应色
+        // 其他预设的对应色
         for (String[] p : Theme.PRESETS) {
             String hex2;
             if (label.contains("背景")) hex2 = p[3];
             else if (label.contains("卡片")) hex2 = p[4];
             else hex2 = p[5];
-            candidates.add(hex2);
+            if (!hex2.equals(presetHex)) candidates.add(hex2);
         }
-        // 常用色
-        String[] extras = label.contains("强调")
-                ? new String[]{"#7d9b76", "#5ea07c", "#d18a9a", "#7FA6E8", "#FF9F68", "#9BD1C6", "#F7A6C4", "#E8736B", "#8E94B8"}
-                : new String[]{"#f6f1e7", "#26241f", "#eef6f1", "#faf0f2", "#ffffff", "#f0f0f0", "#333333", "#2c2c2c", "#ece7db"};
-        for (String e : extras) candidates.add(e);
-
+        // 只取前 4 个
+        int count = 0;
         for (String hex2 : candidates) {
+            if (count >= 4) break;
             View swatch = new View(requireContext());
             int sz = dp(28);
             LinearLayout.LayoutParams slp = new LinearLayout.LayoutParams(sz, sz);
@@ -471,21 +468,31 @@ public class MeFragment extends BaseFragment implements Refreshable {
             sgd.setShape(GradientDrawable.OVAL);
             sgd.setColor(parseColor(hex2));
             String fHex = hex2;
-            // 边框：选中色高亮
             boolean isSelected = hex.equalsIgnoreCase(hex2);
             sgd.setStroke(dp(2), isSelected ? Theme.INK : 0x22000000);
             swatch.setBackground(sgd);
             swatch.setOnClickListener(v -> onApply.accept(fHex));
             swatches.addView(swatch);
+            count++;
         }
+
+        // 第 5 个位置：加号按钮，打开取色器
+        Button plusBtn = new Button(requireContext());
+        int sz = dp(28);
+        LinearLayout.LayoutParams slp = new LinearLayout.LayoutParams(sz, sz);
+        plusBtn.setLayoutParams(slp);
+        plusBtn.setText("＋");
+        plusBtn.setTextColor(Theme.ACCENT);
+        plusBtn.setBackgroundColor(Color.TRANSPARENT);
+        plusBtn.setMinWidth(0); plusBtn.setMinimumWidth(0);
+        plusBtn.setMinHeight(0); plusBtn.setMinimumHeight(0);
+        plusBtn.setPadding(0, 0, 0, 0);
+        plusBtn.setOnClickListener(v -> showColorPickerFor(label, curHex, presetHex, onApply));
+        swatches.addView(plusBtn);
+
         row.addView(swatches);
 
-        // 自定义按钮
-        Button customBtn = ghostBtn("自定义…");
-        customBtn.setOnClickListener(v -> showColorPickerFor(label, curHex, presetHex, onApply));
-        row.addView(customBtn);
-
-        // 恢复默认
+        // 恢复预设按钮
         Button resetBtn = ghostBtn("恢复预设");
         resetBtn.setOnClickListener(v -> onApply.accept(""));
         row.addView(resetBtn);
