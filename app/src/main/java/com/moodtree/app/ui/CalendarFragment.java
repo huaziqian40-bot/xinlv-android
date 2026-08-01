@@ -528,8 +528,8 @@ public class CalendarFragment extends BaseFragment implements Refreshable {
         // 日期格子
         LocalDate first = YearMonth.of(year, month).atDay(1);
         int daysInMonth = YearMonth.of(year, month).lengthOfMonth();
-        // 周一=1...周日=7，前导空格数
-        int leading = first.getDayOfWeek().getValue() % 7;
+        // 周一=1...周日=7，前导空格数：(值+6)%7 让周一落在第0列
+        int leading = (first.getDayOfWeek().getValue() + 6) % 7;
 
         LinearLayout row = null;
         int col = 0;

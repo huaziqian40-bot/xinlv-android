@@ -17,7 +17,7 @@
         android:layout_height="38dp"
         android:gravity="center"
         android:textSize="22sp"
-        android:background="@drawable/input_bg"
+        android:background="@drawable/emoji_bg"
         android:layout_marginEnd="10dp" />
 
     <LinearLayout

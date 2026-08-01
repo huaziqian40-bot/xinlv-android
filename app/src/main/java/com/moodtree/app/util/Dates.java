@@ -55,9 +55,9 @@ public class Dates {
         return t == null ? 0 : t.getHour() * 60 + t.getMinute();
     }
 
-    /** YearMonth → "yyyy-MM" 前缀，给 listForMonth 的 LIKE 查询用 */
+    /** YearMonth → "yyyy-MM-%" 前缀，给 listForMonth 的 LIKE 查询用（必须带 % 通配符！） */
     public static String monthPrefix(YearMonth ym) {
-        return ym.toString() + "-";   // YearMonth.toString() 形如 "2026-07"
+        return ym.toString() + "-%";   // YearMonth.toString() 形如 "2026-07"，加 '-' 后为 "2026-07-%"
     }
 
     /** YearMonth → "2026年7月" 展示用 */

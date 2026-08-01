@@ -50,7 +50,8 @@ public class CalendarAdapter extends BaseAdapter {
 
         LocalDate first = ym.atDay(1);
         // 周一=1...周日=7，转成"前导空格数"：让 1 号落在对应列
-        int leading = first.getDayOfWeek().getValue() % 7;   // 周日(7)%7=0 落最后一列，周一(1)%7=1 落第一列
+        // 周一(1)→0个前导空格(落在第0列)，周二(2)→1个...周日(7)→6个
+        int leading = (first.getDayOfWeek().getValue() + 6) % 7;
         int daysInMonth = ym.lengthOfMonth();
 
         // 计算实际需要的格子数：leading + daysInMonth，向上取整到 7 的倍数
