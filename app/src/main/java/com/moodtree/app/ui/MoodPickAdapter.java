@@ -56,17 +56,15 @@ public class MoodPickAdapter extends RecyclerView.Adapter<MoodPickAdapter.VH> {
         h.label.setText(m.label);
         boolean sel = position == selected;
 
-        // 圆角背景：选中态用强调色 + 边框，未选中用 card 色 + 柔和边框
+        // 圆角背景：选中态用强调色，未选中用 card 色，无描边（与 Windows/macOS 端统一）
         GradientDrawable bg = new GradientDrawable();
         bg.setShape(GradientDrawable.RECTANGLE);
         bg.setCornerRadius(dp(h.itemView, 12));
         if (sel) {
             bg.setColor(Theme.ACCENT);
-            bg.setStroke(dp(h.itemView, 2), Theme.ACCENT);
             h.label.setTextColor(0xFFFFFFFF);
         } else {
             bg.setColor(Theme.CARD);
-            bg.setStroke(dp(h.itemView, 1), Theme.DIVIDER);
             h.label.setTextColor(Theme.INK);
         }
         h.itemView.setBackground(bg);

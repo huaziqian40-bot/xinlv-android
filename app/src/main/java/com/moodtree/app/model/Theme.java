@@ -20,8 +20,8 @@ public class Theme {
 
     /** 4 套预设：{id, 名称, 预览色, bg, card, accent} */
     public static final String[][] PRESETS = {
-            {"warm",   "暖阳", "#7d9b76", "#f6f1e7", "#fffdf8", "#7d9b76"},
-            {"night",  "夜晚", "#93b18b", "#26241f", "#35322b", "#7d9b76"},
+            {"warm",   "暖阳", "#d2893f", "#f6f1e7", "#fffdf8", "#d2893f"},
+            {"night",  "夜晚", "#7d8fb3", "#26241f", "#35322b", "#7d8fb3"},
             {"mint",   "薄荷", "#5ea07c", "#eef6f1", "#fbfffc", "#5ea07c"},
             {"sakura", "樱花", "#d18a9a", "#faf0f2", "#fffafa", "#d18a9a"},
     };

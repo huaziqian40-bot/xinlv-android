@@ -122,7 +122,7 @@ public class CalendarAdapter extends BaseAdapter {
         if (c.moodKey != null) {
             MoodMeta m = MoodMeta.of(c.moodKey);
             tvDot.setText(m.emoji);
-            tvDot.setTextColor(c.isToday ? Color.WHITE : Theme.INK);
+            if (c.isToday) tvDot.setTextColor(Color.WHITE);
             tvDot.setVisibility(View.VISIBLE);
         } else {
             tvDot.setVisibility(View.GONE);
