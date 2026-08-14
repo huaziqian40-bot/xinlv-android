@@ -2,6 +2,8 @@ package com.moodtree.app.ui;
 
 import android.graphics.Color;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,6 +23,21 @@ import com.moodtree.app.model.Theme;
 public class GameFragment extends BaseFragment {
 
     private WebView webView;
+    private final Handler configHandler = new Handler(Looper.getMainLooper());
+    private boolean viewAlive;
+    private final Runnable configPoller = new Runnable() {
+        @Override public void run() {
+            if (!viewAlive || webView == null) return;
+            com.moodtree.app.util.Bg.run(() -> app().api().gameConfig(),
+                    config -> {
+                        if (viewAlive && webView != null) {
+                            String json = config.toString().replace("\\", "\\\\").replace("'", "\\'");
+                            webView.evaluateJavascript("window.applyGameConfig && window.applyGameConfig(" + json + ");", null);
+                        }
+                        if (viewAlive) configHandler.postDelayed(this, 60000);
+                    }, error -> { if (viewAlive) configHandler.postDelayed(this, 60000); });
+        }
+    };
 
     @Nullable
     @Override
@@ -29,6 +46,7 @@ public class GameFragment extends BaseFragment {
         View root = inflater.inflate(R.layout.fragment_game, container, false);
         themeBackground(root);
         webView = root.findViewById(R.id.gameWebView);
+        viewAlive = true;
 
         WebSettings ws = webView.getSettings();
         ws.setJavaScriptEnabled(true);
@@ -55,6 +73,7 @@ public class GameFragment extends BaseFragment {
 
         // 加载 assets 中的游戏页面
         webView.loadUrl("file:///android_asset/game.html");
+        configHandler.post(configPoller);
         return root;
     }
 
@@ -75,6 +94,8 @@ public class GameFragment extends BaseFragment {
 
     @Override
     public void onDestroyView() {
+        viewAlive = false;
+        configHandler.removeCallbacksAndMessages(null);
         if (webView != null) {
             webView.destroy();
             webView = null;
