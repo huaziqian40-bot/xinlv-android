@@ -9,8 +9,8 @@ import android.os.Build;
  *  Android 用 SharedPreferences 存。 */
 public class Config {
 
-    /** 默认服务器（frp 穿透公网地址），用户可在「我的→设置」里改 */
-    public static final String DEFAULT_SERVER = "http://sc1.dpfrp.top:12345";
+    /** 默认服务器（Cloudflare Tunnel 域名），用户可在「我的→设置」里改 */
+    public static final String DEFAULT_SERVER = "https://xin-lv.com";
 
     private final SharedPreferences prefs;
 
