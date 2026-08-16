@@ -20,6 +20,9 @@ import java.util.function.Consumer;
  *  首次加载后自动存磁盘，后续启动秒开；App.onCreate 时预加载全部 15 张 PNG。 */
 public class ImageLoader {
 
+    /** 需要预下载的心情+徽章 PNG 总数（与 PNG_PATHS 等长） */
+    public static final int PNG_COUNT = 15;
+
     private static final int MAX_CACHE_BYTES = 4 * 1024 * 1024; // 4MB
     private static final LruCache<String, Bitmap> cache = new LruCache<String, Bitmap>(MAX_CACHE_BYTES) {
         @Override
@@ -158,27 +161,40 @@ public class ImageLoader {
         err -> { /* 静默 */ });
     }
 
+    // 所有需要预下载的心情+徽章 PNG 路径（相对于 /static/）
+    private static final String[] PNG_PATHS = {
+        "images/mood_happy.png", "images/mood_calm.png", "images/mood_excited.png",
+        "images/mood_grateful.png", "images/mood_tired.png", "images/mood_anxious.png",
+        "images/mood_sad.png", "images/mood_angry.png", "images/mood_lonely.png",
+        "images/mood_numb.png",
+        "images/badge_5.png", "images/badge_30.png", "images/badge_100.png",
+        "images/badge_365.png", "images/badge_1000.png",
+    };
+
+    /** 同步预加载所有 PNG 到磁盘缓存（SplashActivity 后台线程调用，阻塞直到全部下载完成）。
+     *  已存在的跳过，仅下载缺失的。 */
+    public static void preloadAllSync(String serverBase) {
+        for (String path : PNG_PATHS) {
+            String url = serverBase + "/static/" + path;
+            if (diskFile(url).exists()) continue;
+            try {
+                byte[] data = downloadBytes(url);
+                toDisk(url, data);
+            } catch (Exception ignored) { }
+        }
+    }
+
+    /** 返回当前磁盘缓存中的 PNG 文件数（用于判断是否首次启动）。 */
+    public static int diskCacheCount() {
+        if (diskDir == null) return 0;
+        File[] files = diskDir.listFiles((d, name) -> name.endsWith(".png"));
+        return files == null ? 0 : files.length;
+    }
+
     /** 预加载所有心情+徽章 PNG 到磁盘缓存（App.onCreate 后台调用，不阻塞启动）。
      *  首次启动下载全部 15 张，后续启动秒开。 */
     public static void preloadAll(Context ctx, String serverBase) {
         init(ctx);
-        String[] paths = {
-            "images/mood_happy.png", "images/mood_calm.png", "images/mood_excited.png",
-            "images/mood_grateful.png", "images/mood_tired.png", "images/mood_anxious.png",
-            "images/mood_sad.png", "images/mood_angry.png", "images/mood_lonely.png",
-            "images/mood_numb.png",
-            "images/badge_5.png", "images/badge_30.png", "images/badge_100.png",
-            "images/badge_365.png", "images/badge_1000.png",
-        };
-        Bg.run(() -> {
-            for (String path : paths) {
-                String url = serverBase + "/static/" + path;
-                if (diskFile(url).exists()) continue;
-                try {
-                    byte[] data = downloadBytes(url);
-                    toDisk(url, data);
-                } catch (Exception ignored) { }
-            }
-        });
+        Bg.run(() -> preloadAllSync(serverBase));
     }
 }

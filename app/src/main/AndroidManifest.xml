@@ -15,8 +15,9 @@
         android:usesCleartextTraffic="true"
         android:theme="@style/Theme.MoodTree">
 
+        <!-- 启动页：App 的入口，初始化（首次下载 PNG / 非首次同步）完成后跳转登录页或主界面 -->
         <activity
-            android:name=".ui.LoginActivity"
+            android:name=".ui.SplashActivity"
             android:exported="true"
             android:theme="@style/Theme.MoodTree.NoActionBar">
             <intent-filter>
@@ -24,6 +25,11 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <activity
+            android:name=".ui.LoginActivity"
+            android:exported="false"
+            android:theme="@style/Theme.MoodTree.NoActionBar" />
 
         <activity
             android:name=".ui.MainActivity"
