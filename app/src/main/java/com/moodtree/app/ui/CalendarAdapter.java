@@ -10,7 +10,9 @@ import android.widget.TextView;
 import com.moodtree.app.R;
 import com.moodtree.app.model.MoodMeta;
 import com.moodtree.app.model.Theme;
+import com.moodtree.app.util.Config;
 import com.moodtree.app.util.Dates;
+import com.moodtree.app.util.ImageLoader;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -19,6 +21,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import android.graphics.Color;
+import android.widget.ImageView;
 
 /** 日历网格适配器：周一为一周起点，前导空格补齐。每个格子：日期数字右上角 + 心情 emoji 居中。
  *  点格子始终展开该日详情。 */
@@ -40,6 +43,7 @@ public class CalendarAdapter extends BaseAdapter {
     private OnCellClick clickListener;
     private YearMonth month;
     private LocalDate selectedDate;
+    private String serverBase;
 
     public CalendarAdapter(LayoutInflater inflater) {
         this.inflater = inflater;
@@ -104,7 +108,7 @@ public class CalendarAdapter extends BaseAdapter {
         }
         Cell c = cells[position];
         TextView tvDay = convertView.findViewById(R.id.tvDay);
-        TextView tvDot = convertView.findViewById(R.id.tvDot);
+        ImageView tvDot = convertView.findViewById(R.id.tvDot);
 
         if (c == null) {
             // 占位空格：透明，不响应点击
@@ -121,8 +125,10 @@ public class CalendarAdapter extends BaseAdapter {
 
         if (c.moodKey != null) {
             MoodMeta m = MoodMeta.of(c.moodKey);
-            tvDot.setText(m.emoji);
-            if (c.isToday) tvDot.setTextColor(Color.WHITE);
+            if (serverBase == null) {
+                serverBase = new Config(inflater.getContext()).serverBase();
+            }
+            ImageLoader.load(tvDot, serverBase + "/static/" + m.image);
             tvDot.setVisibility(View.VISIBLE);
         } else {
             tvDot.setVisibility(View.GONE);

@@ -3,6 +3,7 @@ package com.moodtree.app.ui;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -12,7 +13,9 @@ import com.moodtree.app.R;
 import com.moodtree.app.db.MoodEntry;
 import com.moodtree.app.model.MoodMeta;
 import com.moodtree.app.model.Theme;
+import com.moodtree.app.util.Config;
 import com.moodtree.app.util.Dates;
+import com.moodtree.app.util.ImageLoader;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,6 +39,7 @@ public class DayEntriesAdapter extends RecyclerView.Adapter<DayEntriesAdapter.VH
     private final List<MoodEntry> items = new ArrayList<>();
     private final OnEntryLongClick longClick;
     private int lastAnimated = -1;
+    private String serverBase;
 
     public DayEntriesAdapter(OnEntryLongClick longClick) {
         this.longClick = longClick;
@@ -53,10 +57,13 @@ public class DayEntriesAdapter extends RecyclerView.Adapter<DayEntriesAdapter.VH
         View v = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.item_day_entry, parent, false);
         VH h = new VH(v);
-        // 主题：item 背景、文字颜色、emoji 底色
+        // 缓存 serverBase
+        if (serverBase == null) {
+            serverBase = new Config(parent.getContext()).serverBase();
+        }
+        // 主题：item 背景、文字颜色
         v.setBackground(Theme.createCardBg(
                 v.getContext().getResources().getDisplayMetrics().density, 10));
-        h.emoji.setBackground(Theme.createEmojiBg());
         h.time.setBackground(Theme.createInputBg());
         h.time.setTextColor(Theme.INK_SOFT);
         h.mood.setTextColor(Theme.INK);
@@ -69,7 +76,7 @@ public class DayEntriesAdapter extends RecyclerView.Adapter<DayEntriesAdapter.VH
     public void onBindViewHolder(@NonNull VH h, int position) {
         MoodEntry e = items.get(position);
         MoodMeta m = MoodMeta.of(e.mood);
-        h.emoji.setText(m.emoji);
+        ImageLoader.load(h.emoji, serverBase + "/static/" + m.image);
         h.mood.setText(m.label);
         String t = Dates.timeOfDay(e.at);
         h.time.setText(t.isEmpty() ? "" : t);
@@ -110,10 +117,11 @@ public class DayEntriesAdapter extends RecyclerView.Adapter<DayEntriesAdapter.VH
     @Override public int getItemCount() { return items.size(); }
 
     static class VH extends RecyclerView.ViewHolder {
-        final TextView emoji, mood, note, time, intensity;
+        final ImageView emoji;
+        final TextView mood, note, time, intensity;
         VH(@NonNull View v) {
             super(v);
-            emoji = v.findViewById(R.id.tvEmoji);
+            emoji = v.findViewById(R.id.ivEmoji);
             mood = v.findViewById(R.id.tvMood);
             note = v.findViewById(R.id.tvNote);
             time = v.findViewById(R.id.tvTime);

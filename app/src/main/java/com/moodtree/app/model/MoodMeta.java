@@ -9,12 +9,14 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-/** 10 种心情定义（与服务端 MOODS 一致）。离线兜底是这里的硬编码；登录同步目录后会覆盖。 */
+/** 10 种心情定义（与服务端 MOODS 一致）。离线兜底是这里的硬编码；登录同步目录后会覆盖。
+ *  图片字段 image 存静态路径（如 images/mood_happy.png），完整 URL 由调用方拼 serverBase。 */
 public class MoodMeta {
 
     public String key;
     public String label;
-    public String emoji;
+    public String emoji;   // 兜底展示用（PNG 加载失败时）
+    public String image;   // 表情 PNG 静态路径（服务端 MOODS image 字段）
     public String color;
     public int valence;   // 1 正面 / 0 中性 / -1 负面（与服务端 MOODS 一致；决定推荐给小知识还是小练习）
 
@@ -22,22 +24,22 @@ public class MoodMeta {
 
     private static List<MoodMeta> defaultMoods() {
         return new ArrayList<>(Arrays.asList(
-                m("happy",    "开心", "😄", "#FFD56B",  1),
-                m("calm",     "平静", "🙂", "#9BD1C6",  1),
-                m("excited",  "兴奋", "🤩", "#FF9F68",  1),
-                m("grateful", "感恩", "🥰", "#F7A6C4",  1),
-                m("tired",    "疲惫", "😪", "#A6A6C9", -1),
-                m("anxious",  "焦虑", "😟", "#7FA6E8", -1),
-                m("sad",      "难过", "😢", "#6D8FB8", -1),
-                m("angry",    "愤怒", "😠", "#E8736B", -1),
-                m("lonely",   "孤独", "🌧️", "#8E94B8", -1),
-                m("numb",     "麻木", "😶", "#B0B0B0",  0)
+                m("happy",    "开心", "😄", "images/mood_happy.png",    "#FFD56B",  1),
+                m("calm",     "平静", "🙂", "images/mood_calm.png",     "#9BD1C6",  1),
+                m("excited",  "兴奋", "🤩", "images/mood_excited.png",  "#FF9F68",  1),
+                m("grateful", "感恩", "🥰", "images/mood_grateful.png", "#F7A6C4",  1),
+                m("tired",    "疲惫", "😪", "images/mood_tired.png",    "#A6A6C9", -1),
+                m("anxious",  "焦虑", "😟", "images/mood_anxious.png",  "#7FA6E8", -1),
+                m("sad",      "难过", "😢", "images/mood_sad.png",      "#6D8FB8", -1),
+                m("angry",    "愤怒", "😠", "images/mood_angry.png",    "#E8736B", -1),
+                m("lonely",   "孤独", "🌧️", "images/mood_lonely.png",  "#8E94B8", -1),
+                m("numb",     "麻木", "😶", "images/mood_numb.png",     "#B0B0B0",  0)
         ));
     }
 
-    private static MoodMeta m(String key, String label, String emoji, String color, int valence) {
+    private static MoodMeta m(String key, String label, String emoji, String image, String color, int valence) {
         MoodMeta x = new MoodMeta();
-        x.key = key; x.label = label; x.emoji = emoji; x.color = color; x.valence = valence;
+        x.key = key; x.label = label; x.emoji = emoji; x.image = image; x.color = color; x.valence = valence;
         return x;
     }
 
@@ -48,7 +50,7 @@ public class MoodMeta {
 
     public static MoodMeta of(String key) {
         for (MoodMeta m : MOODS) if (m.key.equals(key)) return m;
-        return m(key, key, "·", "#B0B0B0", 0);
+        return m(key, key, "·", "images/mood_numb.png", "#B0B0B0", 0);
     }
 
     /** 用服务端目录里的心情定义覆盖本地默认值（格式：[{key,label,emoji,color}, ...]） */
@@ -62,6 +64,9 @@ public class MoodMeta {
                 x.key = o.get("key").getAsString();
                 x.label = o.get("label").getAsString();
                 x.emoji = o.has("emoji") ? o.get("emoji").getAsString() : "";
+                x.image = o.has("image") ? o.get("image").getAsString() : "";
+                // 目录没带 image 时回退本地默认表路径，避免图片缺失
+                if (x.image == null || x.image.isEmpty()) x.image = defaultImage(x.key);
                 x.color = o.has("color") ? o.get("color").getAsString() : "#B0B0B0";
                 // 目录没带 valence 时回退本地默认表里的值，避免正面心情判断失效
                 x.valence = o.has("valence") ? o.get("valence").getAsInt() : defaultValence(x.key);
@@ -74,5 +79,10 @@ public class MoodMeta {
     private static int defaultValence(String key) {
         for (MoodMeta m : defaultMoods()) if (m.key.equals(key)) return m.valence;
         return 0;
+    }
+
+    private static String defaultImage(String key) {
+        for (MoodMeta m : defaultMoods()) if (m.key.equals(key)) return m.image;
+        return "images/mood_numb.png";
     }
 }

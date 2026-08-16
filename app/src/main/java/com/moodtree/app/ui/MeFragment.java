@@ -32,6 +32,8 @@ import com.moodtree.app.R;
 import com.moodtree.app.model.Theme;
 import com.moodtree.app.sync.SyncEngine;
 import com.moodtree.app.util.Bg;
+import com.moodtree.app.util.Config;
+import com.moodtree.app.util.ImageLoader;
 
 import java.time.LocalDate;
 import java.util.HashSet;
@@ -47,6 +49,7 @@ public class MeFragment extends BaseFragment implements Refreshable {
     private TextView tvState;
     private boolean loaded;
     private int animDelay;          // 递增动画延迟
+    private String serverBase;      // 缓存图片 URL 前缀
 
     // 可选强调色（安卓没有 ColorPicker 控件，给一组常用色 + 自定义输入）
     private static final String[] ACCENT_SWATCHES = {
@@ -62,6 +65,7 @@ public class MeFragment extends BaseFragment implements Refreshable {
         themeBackground(root);
         contentBox = root.findViewById(R.id.contentBox);
         tvState = root.findViewById(R.id.tvState);
+        serverBase = new Config(requireContext()).serverBase();
         return root;
     }
 
@@ -189,8 +193,7 @@ public class MeFragment extends BaseFragment implements Refreshable {
                     row.setLayoutParams(lp(lpM(), lpW(), 0, 0, 0, dp(10)));
                     badgeGrid.addView(row);
                 }
-                row.addView(badgeCell(b.get("emoji").getAsString(),
-                        b.get("name").getAsString(), b.get("days").getAsInt()));
+                row.addView(badgeCell(b));
                 i++;
             }
         }
@@ -223,30 +226,49 @@ public class MeFragment extends BaseFragment implements Refreshable {
         return card;
     }
 
-    /** 一个徽章格 — 圆角卡片风格 */
-    private View badgeCell(String emoji, String name, int days) {
-        LinearLayout b = new LinearLayout(requireContext());
-        b.setOrientation(LinearLayout.VERTICAL);
-        b.setGravity(Gravity.CENTER);
+    /** 一个徽章格 — 圆角卡片风格，用 PNG 图片，无图时 emoji 兜底 */
+    private View badgeCell(JsonObject b) {
+        String emoji = b.get("emoji").getAsString();
+        String name = b.get("name").getAsString();
+        int days = b.get("days").getAsInt();
+        String image = b.has("image") && !b.get("image").isJsonNull()
+                ? b.get("image").getAsString() : "";
+
+        LinearLayout cell = new LinearLayout(requireContext());
+        cell.setOrientation(LinearLayout.VERTICAL);
+        cell.setGravity(Gravity.CENTER);
         int pad = dp(14);
-        b.setPadding(pad, pad, pad, pad);
+        cell.setPadding(pad, pad, pad, pad);
         LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(0, lpW(), 1f);
         p.leftMargin = p.rightMargin = dp(4);
-        b.setLayoutParams(p);
+        cell.setLayoutParams(p);
 
         // 圆角背景
         GradientDrawable gd = new GradientDrawable();
         gd.setColor(Theme.CARD);
         gd.setCornerRadius(dp(12));
         gd.setStroke(dp(1), Theme.DIVIDER);
-        b.setBackground(gd);
+        cell.setBackground(gd);
 
-        b.addView(text(emoji, Theme.INK, 28));
+        // 徽章图片（优先 PNG，无图时显示 emoji 兜底）
+        if (!image.isEmpty()) {
+            ImageView iv = new ImageView(requireContext());
+            int sz = dp(36);
+            LinearLayout.LayoutParams ilp = new LinearLayout.LayoutParams(sz, sz);
+            ilp.bottomMargin = dp(2);
+            iv.setLayoutParams(ilp);
+            iv.setScaleType(ImageView.ScaleType.FIT_CENTER);
+            ImageLoader.load(iv, serverBase + "/static/" + image);
+            cell.addView(iv);
+        } else {
+            cell.addView(text(emoji, Theme.INK, 28));
+        }
+
         TextView nameTv = text(name, Theme.INK, 13);
         nameTv.setPadding(0, dp(2), 0, 0);
-        b.addView(nameTv);
-        b.addView(text("连续 " + days + " 天", Theme.INK_SOFT, 11));
-        return b;
+        cell.addView(nameTv);
+        cell.addView(text("连续 " + days + " 天", Theme.INK_SOFT, 11));
+        return cell;
     }
 
     // ---------- 设置区 ----------
@@ -274,7 +296,15 @@ public class MeFragment extends BaseFragment implements Refreshable {
         etServer.setTextSize(13);
         etServer.setPadding(dp(10), dp(8), dp(10), dp(8));
         etServer.setLayoutParams(new LinearLayout.LayoutParams(0, lpW(), 1f));
-        Button saveServer = primaryBtn("保存");
+        Button saveServer = new Button(requireContext());
+        saveServer.setText("保存");
+        saveServer.setBackground(Theme.createPrimaryButton());
+        saveServer.setTextColor(Color.WHITE);
+        saveServer.setTextSize(15);
+        saveServer.setMinWidth(0); saveServer.setMinimumWidth(0);
+        saveServer.setMinHeight(0); saveServer.setMinimumHeight(0);
+        saveServer.setPadding(dp(20), dp(12), dp(20), dp(12));
+        saveServer.setLayoutParams(new LinearLayout.LayoutParams(lpW(), lpW()));
         saveServer.setOnClickListener(v -> {
             app().config().setServerBase(etServer.getText().toString());
             Toast.makeText(getContext(), "已保存，重启后完全生效", Toast.LENGTH_SHORT).show();

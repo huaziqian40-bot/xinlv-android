@@ -1,9 +1,11 @@
 package com.moodtree.app.ui;
 
+import android.content.Context;
 import android.graphics.drawable.GradientDrawable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -12,6 +14,8 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.moodtree.app.R;
 import com.moodtree.app.model.MoodMeta;
 import com.moodtree.app.model.Theme;
+import com.moodtree.app.util.Config;
+import com.moodtree.app.util.ImageLoader;
 
 import java.util.List;
 
@@ -23,6 +27,7 @@ public class MoodPickAdapter extends RecyclerView.Adapter<MoodPickAdapter.VH> {
     private final List<MoodMeta> moods;
     private final OnPick picker;
     private int selected = -1;
+    private String serverBase;
 
     public MoodPickAdapter(List<MoodMeta> moods, OnPick picker) {
         this.moods = moods;
@@ -46,13 +51,18 @@ public class MoodPickAdapter extends RecyclerView.Adapter<MoodPickAdapter.VH> {
     public VH onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View v = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.item_mood_pick, parent, false);
+        // 缓存 serverBase 用于构造图片 URL
+        if (serverBase == null) {
+            serverBase = new Config(parent.getContext()).serverBase();
+        }
         return new VH(v);
     }
 
     @Override
     public void onBindViewHolder(@NonNull VH h, int position) {
         MoodMeta m = moods.get(position);
-        h.emoji.setText(m.emoji);
+        // 加载心情 PNG 图片
+        ImageLoader.load(h.emoji, serverBase + "/static/" + m.image);
         h.label.setText(m.label);
         boolean sel = position == selected;
 
@@ -81,10 +91,11 @@ public class MoodPickAdapter extends RecyclerView.Adapter<MoodPickAdapter.VH> {
     @Override public int getItemCount() { return moods.size(); }
 
     static class VH extends RecyclerView.ViewHolder {
-        final TextView emoji, label;
+        final ImageView emoji;
+        final TextView label;
         VH(@NonNull View v) {
             super(v);
-            emoji = v.findViewById(R.id.tvEmoji);
+            emoji = v.findViewById(R.id.ivEmoji);
             label = v.findViewById(R.id.tvLabel);
         }
     }

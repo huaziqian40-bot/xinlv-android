@@ -2,6 +2,7 @@ package com.moodtree.app.ui;
 
 import android.content.Intent;
 import android.graphics.Color;
+import android.graphics.drawable.BitmapDrawable;
 import android.media.AudioAttributes;
 import android.media.MediaPlayer;
 import android.net.Uri;
@@ -30,6 +31,8 @@ import com.moodtree.app.R;
 import com.moodtree.app.model.MoodMeta;
 import com.moodtree.app.model.Theme;
 import com.moodtree.app.util.Bg;
+import com.moodtree.app.util.Config;
+import com.moodtree.app.util.ImageLoader;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -64,9 +67,20 @@ public class RecommendFragment extends BaseFragment implements Refreshable {
         root.<TextView>findViewById(R.id.tvRecSub).setTextColor(Theme.INK_SOFT);
 
         boolean isDark = Theme.isDarkTheme();
+        String serverBase = new Config(requireContext()).serverBase();
         for (MoodMeta m : MoodMeta.all()) {
             Chip chip = new Chip(requireContext());
+            chip.setText(m.label);
+            // 用 PNG 心情图作图标；未加载完成前先显示 emoji 兜底
             chip.setText(m.emoji + " " + m.label);
+            ImageLoader.loadBitmap(serverBase + "/static/" + m.image, bmp -> {
+                if (bmp != null && chip.isAttachedToWindow()) {
+                    chip.setChipIcon(new BitmapDrawable(getResources(), bmp));
+                    chip.setChipIconSize(dp(18));
+                    chip.setChipIconVisible(true);
+                    chip.setText(m.label);
+                }
+            });
             chip.setCheckable(true);
             int color = parseColor(m.color);
             // 提高饱和度

@@ -11,6 +11,7 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.GridView;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -24,7 +25,9 @@ import com.moodtree.app.db.MoodEntry;
 import com.moodtree.app.model.MoodMeta;
 import com.moodtree.app.model.Theme;
 import com.moodtree.app.util.Bg;
+import com.moodtree.app.util.Config;
 import com.moodtree.app.util.Dates;
+import com.moodtree.app.util.ImageLoader;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -54,6 +57,7 @@ public class CalendarFragment extends BaseFragment implements Refreshable {
     private TextView tvWeekTitle, tvYearTitle;
     private LocalDate weekAnchor;   // 周视图锚点（周一）
     private int yearNum;
+    private String serverBase;
 
     @Nullable
     @Override
@@ -166,6 +170,7 @@ public class CalendarFragment extends BaseFragment implements Refreshable {
         currentMonth = YearMonth.now();
         weekAnchor = LocalDate.now().with(DayOfWeek.MONDAY);
         yearNum = LocalDate.now().getYear();
+        serverBase = new Config(requireContext()).serverBase();
         reload();
         // 默认显示今天的记录
         showDay(LocalDate.now());
@@ -420,7 +425,7 @@ public class CalendarFragment extends BaseFragment implements Refreshable {
                             int minutes = Dates.minutesOfDay(e.at);
                             float topPct = (float) minutes / 1440f;
 
-                            View dot = createWeekDot(meta.emoji, meta.color, topPct, iso);
+                            View dot = createWeekDot(meta, meta.color, topPct, iso);
                             track.addView(dot);
                         }
                     }
@@ -435,13 +440,13 @@ public class CalendarFragment extends BaseFragment implements Refreshable {
     }
 
     /** 创建周视图中的一个情绪点（用 marginTop 定位） */
-    private View createWeekDot(String emoji, String color, float topPct, String dateIso) {
-        TextView dot = new TextView(requireContext());
-        dot.setText(emoji);
-        dot.setTextSize(16);
-        dot.setPadding(0, 0, 0, 0);
+    private View createWeekDot(MoodMeta meta, String color, float topPct, String dateIso) {
+        ImageView dot = new ImageView(requireContext());
+        dot.setScaleType(android.widget.ImageView.ScaleType.FIT_CENTER);
+        // 加载心情 PNG
+        ImageLoader.load(dot, serverBase + "/static/" + meta.image);
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+                dp(20), dp(20));
         lp.topMargin = (int) (topPct * 400); // 按 400dp 轨道高度估算偏移
         if (lp.topMargin < 2) lp.topMargin = 2;
         dot.setLayoutParams(lp);
@@ -628,17 +633,17 @@ public class CalendarFragment extends BaseFragment implements Refreshable {
         return block;
     }
 
-    /** 年视图单个日期格子：有情绪时显示 emoji */
+    /** 年视图单个日期格子：有情绪时显示心情 PNG 图片 */
     private View createYearCell(MoodMeta meta) {
         if (meta == null) {
             TextView empty = new TextView(requireContext());
             empty.setLayoutParams(new LinearLayout.LayoutParams(0, 24, 1f));
             return empty;
         }
-        TextView dot = new TextView(requireContext());
-        dot.setText(meta.emoji);
-        dot.setTextSize(10);
-        dot.setGravity(android.view.Gravity.CENTER);
+        ImageView dot = new ImageView(requireContext());
+        dot.setScaleType(android.widget.ImageView.ScaleType.FIT_CENTER);
+        // 加载心情 PNG
+        ImageLoader.load(dot, serverBase + "/static/" + meta.image);
         return dot;
     }
 
