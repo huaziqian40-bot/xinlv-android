@@ -8,6 +8,7 @@ import com.moodtree.app.model.Theme;
 import com.moodtree.app.util.ApiClient;
 import com.moodtree.app.util.Bg;
 import com.moodtree.app.util.Config;
+import com.moodtree.app.util.ImageLoader;
 
 /** 全局 Application：持有 Config / ApiClient / Room 数据库，启动时应用保存的主题、加载缓存的心情定义。 */
 public class App extends Application {
@@ -33,6 +34,9 @@ public class App extends Application {
         // 启动时应用保存的主题（纯内存静态字段，无数据库访问，主线程安全）
         // 使用 3 色自定义：bg/card/accent，空串 = 用预设值
         Theme.apply(config.themeId(), config.themeBg(), config.themeCard(), config.themeAccent());
+
+        // 预加载全部心情/徽章 PNG 到本地磁盘缓存：首次拉取一次，之后启动秒开
+        ImageLoader.preloadAll(this, config.serverBase());
     }
 
     public Config config() { return config; }
