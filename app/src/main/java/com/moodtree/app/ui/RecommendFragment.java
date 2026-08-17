@@ -47,6 +47,7 @@ public class RecommendFragment extends BaseFragment implements Refreshable {
     private TextView tvState;
     private LinearLayout resultBox;
     private String selectedMood;
+    private int selectToken;          // 每次点心情自增；回调里比对，丢弃过期结果
 
     private MediaPlayer player;       // 同时只放一首
     private Button playingBtn;
@@ -118,23 +119,37 @@ public class RecommendFragment extends BaseFragment implements Refreshable {
         stopPlayer();
     }
 
-    /** 选中某心情并加载推荐 */
+    /** 选中某心情并加载推荐。
+     *  关键约束：无论离线/在线谁先回来，只在 resultBox 还空着时渲染一次——
+     *  谁先到谁画（离线通常更快，带动画），后到的只更新状态文字，绝不重绘。 */
     public void select(String mood) {
         selectedMood = mood;
         stopPlayer();
+        final int token = ++selectToken;
         MoodMeta m = MoodMeta.of(mood);
         tvState.setText("正在为你准备「" + m.label + "」的推荐…");
         resultBox.removeAllViews();
 
-        // 1. 立即从本地缓存加载（无动画，秒出），保证点击即见
+        // 1. 立即从本地缓存加载（带动画），保证点击即见——这是唯一一次动画
         Bg.run(() -> offlineRecommend(mood),
-                rec -> render(rec, false),
+                rec -> {
+                    if (token != selectToken) return;            // 已切到别的情绪，丢弃
+                    if (resultBox.getChildCount() == 0) render(rec, true);
+                },
                 err -> { /* 离线失败没关系，等在线结果 */ });
 
-        // 2. 同时后台请求在线推荐（如果已登录），覆盖更丰富的结果，带动画
+        // 2. 同时后台请求在线推荐（如果已登录），覆盖更丰富的结果
+        //    离线已渲染过就绝不重绘卡片，只更新状态文字，彻底避免二次动画
         if (app().config().loggedIn()) {
             Bg.run(() -> app().api().recommend(mood),
-                    rec -> render(rec, true),
+                    rec -> {
+                        if (token != selectToken) return;
+                        if (resultBox.getChildCount() == 0) {
+                            render(rec, false);
+                        } else {
+                            tvState.setText("给「" + MoodMeta.of(mood).label + "」的你");
+                        }
+                    },
                     err -> { /* 在线失败就保留离线结果 */ });
         }
     }
