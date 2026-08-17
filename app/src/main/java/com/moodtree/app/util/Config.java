@@ -65,6 +65,12 @@ public class Config {
 
     public boolean loggedIn() { return !token().isEmpty(); }
 
+    /** AI 主动消息轮询游标：上次拉取到的 server_time（ISO8601），空串 = 尚未轮询过 */
+    public String lastProactiveCheck() { return prefs.getString("lastProactiveCheck", ""); }
+    public void setLastProactiveCheck(String v) {
+        prefs.edit().putString("lastProactiveCheck", v == null ? "" : v).apply();
+    }
+
     /** 可以直接进主界面：已登录，或用户选了游客模式 */
     public boolean canEnterMain() { return loggedIn() || guestMode(); }
 }

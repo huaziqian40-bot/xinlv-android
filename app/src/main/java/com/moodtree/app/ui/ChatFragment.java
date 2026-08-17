@@ -174,6 +174,11 @@ public class ChatFragment extends BaseFragment implements Refreshable {
         rv.scrollToPosition(messages.size() - 1);
     }
 
+    /** 主动消息到达时从外部追加一条（与普通气泡完全一致），供 MainActivity 轮询调用。 */
+    public void addProactiveMessage(String text) {
+        addBubble("assistant", text, false);
+    }
+
     private void clearHistory() {
         Bg.run(() -> { app().api().chatClear(); return null; },
                 ok -> {

@@ -4,6 +4,8 @@
     <!-- 服务器是 http（内网穿透，无 HTTPS），必须允许明文流量，否则 Android 9+ 联网被拦截 -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <!-- Android 13+ 发通知（AI 主动消息提醒）需要运行时权限 -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <application
         android:name=".App"

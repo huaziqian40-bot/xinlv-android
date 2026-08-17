@@ -1,12 +1,27 @@
 package com.moodtree.app.ui;
 
+import android.Manifest;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.app.NotificationCompat;
+import androidx.core.app.NotificationManagerCompat;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.moodtree.app.App;
 import com.moodtree.app.R;
 import com.moodtree.app.db.MoodEntry;
@@ -26,6 +41,18 @@ public class MainActivity extends AppCompatActivity {
     private GameFragment gameFrag;
     private MeFragment meFrag;
     private Fragment active;
+
+    // ---- AI 主动消息轮询 ----
+    private static final String PROACTIVE_CHANNEL_ID = "proactive";
+    private static final long PROACTIVE_POLL_MS = 60_000L;
+    private final Handler proactiveHandler = new Handler(Looper.getMainLooper());
+    private boolean proactivePolling;
+    private final Runnable proactiveTick = new Runnable() {
+        @Override public void run() {
+            pollProactive();
+            proactiveHandler.postDelayed(this, PROACTIVE_POLL_MS);
+        }
+    };
 
     // ---- 情绪视觉影响 ----
     private MoodOverlayView moodOverlay;
@@ -132,6 +159,11 @@ public class MainActivity extends AppCompatActivity {
 
         // 进主界面后异步同步一轮（登录用户）；游客静默跳过
         requestSync(null);
+
+        // 创建通知渠道（Android 8+ 必需，重复创建安全）
+        createNotificationChannel();
+        // 开始 AI 主动消息轮询
+        startProactivePolling();
 
         // ---- 情绪视觉影响 ----
         moodOverlay = findViewById(R.id.moodOverlay);
@@ -273,5 +305,106 @@ public class MainActivity extends AppCompatActivity {
         }
         // 延迟一点等页面切换完成再触发 select
         findViewById(android.R.id.content).post(() -> recommendFrag.select(mood));
+    }
+
+    // ============ AI 主动消息轮询 + 系统通知 ============
+
+    private void createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel ch = new NotificationChannel(
+                    PROACTIVE_CHANNEL_ID, "树洞来信", NotificationManager.IMPORTANCE_HIGH);
+            ch.setDescription("AI 树洞主动发来的消息提醒");
+            NotificationManager nm = getSystemService(NotificationManager.class);
+            if (nm != null) nm.createNotificationChannel(ch);
+        }
+    }
+
+    /** 主动消息轮询：后台请求 /chat/proactive/，当前在聊天页就直接追加气泡，否则弹系统通知。
+     *  与网络同步独立，登录后定时触发；游客不轮询。 */
+    private void pollProactive() {
+        App a = app();
+        if (!a.config().loggedIn()) return;
+        String since = a.config().lastProactiveCheck();
+        Bg.run(() -> {
+                    if (!a.api().ping()) return null;      // 离线静默跳过
+                    return a.api().chatProactive(since.isEmpty() ? null : since);
+                },
+                resp -> {
+                    if (resp == null) return;
+                    String serverTime = "";
+                    if (resp.has("server_time") && !resp.get("server_time").isJsonNull()) {
+                        serverTime = resp.get("server_time").getAsString();
+                    }
+                    if (resp.has("messages") && resp.get("messages").isJsonArray()) {
+                        for (JsonElement el : resp.getAsJsonArray("messages")) {
+                            JsonObject m = el.getAsJsonObject();
+                            String content = m.has("content") ? m.get("content").getAsString() : "";
+                            if (content.isEmpty()) continue;
+                            if (active == chatFrag && !chatFrag.isHidden()) {
+                                chatFrag.addProactiveMessage(content);
+                            } else {
+                                showProactiveNotification(content);
+                            }
+                        }
+                    }
+                    // 保存游标，下次只拉取更新的消息
+                    if (!serverTime.isEmpty()) a.config().setLastProactiveCheck(serverTime);
+                },
+                err -> { /* 网络/鉴权失败静默，下轮再试 */ });
+    }
+
+    private void startProactivePolling() {
+        if (proactivePolling) return;
+        // 游客没有服务器会话，轮询没有意义
+        if (!app().config().loggedIn()) return;
+        proactivePolling = true;
+        // Android 13+ 需要运行时通知权限；不授予也不影响轮询与气泡追加，只是不弹通知
+        if (Build.VERSION.SDK_INT >= 33
+                && ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
+                != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.POST_NOTIFICATIONS}, 1001);
+        }
+        proactiveHandler.postDelayed(proactiveTick, PROACTIVE_POLL_MS);
+    }
+
+    private void stopProactivePolling() {
+        proactiveHandler.removeCallbacks(proactiveTick);
+        proactivePolling = false;
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        // 权限结果不阻塞功能，静默处理即可
+    }
+
+    /** 系统通知：类似微信消息提醒（点按打开应用，不做深链跳转） */
+    private void showProactiveNotification(String text) {
+        String title = "🌳 树洞来信";
+        String body = text.length() > 120 ? text.substring(0, 120) + "…" : text;
+        Intent intent = new Intent(this, MainActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        PendingIntent pi = PendingIntent.getActivity(this, 0, intent,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+        NotificationCompat.Builder b = new NotificationCompat.Builder(this, PROACTIVE_CHANNEL_ID)
+                .setSmallIcon(R.drawable.ic_notification)
+                .setContentTitle(title)
+                .setContentText(body)
+                .setStyle(new NotificationCompat.BigTextStyle().bigText(text))
+                .setAutoCancel(true)
+                .setContentIntent(pi);
+        try {
+            NotificationManagerCompat.from(this).notify((int) (System.currentTimeMillis() % 100000), b.build());
+        } catch (SecurityException e) {
+            // 未授予通知权限：静默
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        stopProactivePolling();
+        super.onDestroy();
     }
 }
