@@ -126,15 +126,15 @@ public class RecommendFragment extends BaseFragment implements Refreshable {
         tvState.setText("正在为你准备「" + m.label + "」的推荐…");
         resultBox.removeAllViews();
 
-        // 1. 立即从本地缓存加载（零等待），保证秒出结果
+        // 1. 立即从本地缓存加载（无动画，秒出），保证点击即见
         Bg.run(() -> offlineRecommend(mood),
-                this::render,
-                err -> { /* 离线失败也没关系，等在线结果 */ });
+                rec -> render(rec, false),
+                err -> { /* 离线失败没关系，等在线结果 */ });
 
-        // 2. 同时后台请求在线推荐（如果已登录），覆盖更丰富的结果
+        // 2. 同时后台请求在线推荐（如果已登录），覆盖更丰富的结果，带动画
         if (app().config().loggedIn()) {
             Bg.run(() -> app().api().recommend(mood),
-                    this::render,
+                    rec -> render(rec, true),
                     err -> { /* 在线失败就保留离线结果 */ });
         }
     }
@@ -215,8 +215,8 @@ public class RecommendFragment extends BaseFragment implements Refreshable {
         return false;
     }
 
-    /** 渲染推荐结果（主线程） */
-    private void render(JsonObject rec) {
+    /** 渲染推荐结果（主线程）。animate=false 时卡片无动画（本地缓存首次秒出用） */
+    private void render(JsonObject rec, boolean animate) {
         if (!isAdded()) return;
         MoodMeta m = MoodMeta.of(rec.get("mood").getAsString());
         boolean offline = rec.has("offline") && rec.get("offline").getAsBoolean();
@@ -260,7 +260,7 @@ public class RecommendFragment extends BaseFragment implements Refreshable {
                 card.addView(row);
             }
             resultBox.addView(card);
-            animateIn(card, delay++);
+            if (animate) animateIn(card, delay++);
         }
 
         if (acts != null && acts.size() > 0) {
@@ -278,7 +278,7 @@ public class RecommendFragment extends BaseFragment implements Refreshable {
                 card.addView(t);
             }
             resultBox.addView(card);
-            animateIn(card, delay++);
+            if (animate) animateIn(card, delay++);
         }
 
         // 服务端规则：负面/中性心情没有小知识（tips 为空数组），空卡不能渲染，否则只见标题不见内容
@@ -312,7 +312,7 @@ public class RecommendFragment extends BaseFragment implements Refreshable {
                 }
             }
             resultBox.addView(card);
-            animateIn(card, delay++);
+            if (animate) animateIn(card, delay++);
         }
 
         // 即时小练习（负面/中性心情，服务端 practice 字段；与网页端结果页一致）
@@ -324,7 +324,7 @@ public class RecommendFragment extends BaseFragment implements Refreshable {
             t.setTextSize(14);
             card.addView(t);
             resultBox.addView(card);
-            animateIn(card, delay++);
+            if (animate) animateIn(card, delay++);
         }
 
         if (hasVideo) {
@@ -334,7 +334,7 @@ public class RecommendFragment extends BaseFragment implements Refreshable {
             link.setOnClickListener(view -> openBrowser(v.get("url").getAsString()));
             card.addView(link);
             resultBox.addView(card);
-            animateIn(card, delay++);
+            if (animate) animateIn(card, delay++);
         }
     }
 
