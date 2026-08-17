@@ -126,17 +126,17 @@ public class RecommendFragment extends BaseFragment implements Refreshable {
         tvState.setText("正在为你准备「" + m.label + "」的推荐…");
         resultBox.removeAllViews();
 
-        Bg.run(() -> {
-                    JsonObject rec;
-                    if (app().config().loggedIn() && app().api().ping()) {
-                        rec = app().api().recommend(mood);          // 在线
-                    } else {
-                        rec = offlineRecommend(mood);                // 离线缓存
-                    }
-                    return rec;
-                },
+        // 1. 立即从本地缓存加载（零等待），保证秒出结果
+        Bg.run(() -> offlineRecommend(mood),
                 this::render,
-                err -> tvState.setText("推荐加载失败：" + err.getMessage()));
+                err -> { /* 离线失败也没关系，等在线结果 */ });
+
+        // 2. 同时后台请求在线推荐（如果已登录），覆盖更丰富的结果
+        if (app().config().loggedIn()) {
+            Bg.run(() -> app().api().recommend(mood),
+                    this::render,
+                    err -> { /* 在线失败就保留离线结果 */ });
+        }
     }
 
     /** 离线：从目录缓存按心情筛选随机挑几条（规则向服务端看齐：正面给小知识，负面/中性给小练习） */

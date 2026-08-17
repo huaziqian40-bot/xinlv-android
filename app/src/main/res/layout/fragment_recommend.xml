@@ -40,7 +40,8 @@
         android:layout_height="wrap_content"
         android:paddingHorizontal="12dp"
         android:paddingBottom="0dp"
-        app:chipSpacingVertical="-4dp" />
+        app:chipSpacingVertical="-4dp"
+        app:singleSelection="true" />
 
     <TextView
         android:id="@+id/tvState"
