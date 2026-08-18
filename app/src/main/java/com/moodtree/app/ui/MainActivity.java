@@ -162,6 +162,8 @@ public class MainActivity extends AppCompatActivity {
 
         // 创建通知渠道（Android 8+ 必需，重复创建安全）
         createNotificationChannel();
+        // 在进入主界面时请求通知权限，不依赖登录状态；否则用户可能永远看不到权限弹窗
+        requestNotificationPermission();
         // 开始 AI 主动消息轮询
         startProactivePolling();
 
@@ -358,14 +360,19 @@ public class MainActivity extends AppCompatActivity {
         // 游客没有服务器会话，轮询没有意义
         if (!app().config().loggedIn()) return;
         proactivePolling = true;
-        // Android 13+ 需要运行时通知权限；不授予也不影响轮询与气泡追加，只是不弹通知
+        // 进入主界面立即检查一次，之后按固定间隔轮询
+        proactiveHandler.post(proactiveTick);
+    }
+
+    private void requestNotificationPermission() {
         if (Build.VERSION.SDK_INT >= 33
                 && ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
                 != PackageManager.PERMISSION_GRANTED) {
+            // Android 会根据用户上次选择决定是否再次显示确认框；不要用
+            // shouldShowRequestPermissionRationale() 把请求提前拦截掉。
             ActivityCompat.requestPermissions(this,
                     new String[]{Manifest.permission.POST_NOTIFICATIONS}, 1001);
         }
-        proactiveHandler.postDelayed(proactiveTick, PROACTIVE_POLL_MS);
     }
 
     private void stopProactivePolling() {
