@@ -1,0 +1,5 @@
+Add phix first-run onboarding (CONTRACT §7)
+
+首启引导：SplashActivity 检查 phixSessionDone，未完成则进入 PhixSessionActivity；
+MeFragment 提供入口与状态。ApiClient/PhixCrypto 实现 phix 登录（auth_hash v2 /
+password v1 兼容）与注册（显式 v1）。

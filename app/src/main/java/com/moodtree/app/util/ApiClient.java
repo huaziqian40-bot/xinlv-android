@@ -208,4 +208,152 @@ public class ApiClient {
     public JsonObject profile() throws ApiException {
         return get("/api/v1/profile/", null, true);
     }
+
+    // ---- phix 会话凭据（§7 首启引导） ----
+
+    /** phix 登录：先取密钥材料；v2 账号发 auth_hash（服务端只存 AuthHash），v1 老账号发 password。 */
+    public JsonObject phixLogin(String server, String username, String password) throws ApiException {
+        JsonObject kmBody = new JsonObject();
+        kmBody.addProperty("username", username);
+        JsonObject km = postTo(server, "/api/v1/auth/keymaterial", kmBody);
+        String algo = km.has("kdf_algo") ? km.get("kdf_algo").getAsString() : "";
+        String salt = km.has("auth_salt") ? km.get("auth_salt").getAsString() : "";
+
+        JsonObject body = new JsonObject();
+        body.addProperty("username", username);
+        if ("scrypt-hkdf-v2".equals(algo) && salt != null && !salt.isEmpty()) {
+            // v2 账号：服务器只存 AuthHash（HKDF(scrypt(P,auth_salt))），绝不能发口令原文
+            body.addProperty("auth_hash", PhixCrypto.authHashHex(password, salt));
+        } else {
+            body.addProperty("password", password);   // v1 老账号兼容路径
+        }
+        return postTo(server, "/api/v1/auth/login", body);
+    }
+
+    /** phix 注册：显式选 v1，待客户端具备完整密钥管理后升级 v2 */
+    public JsonObject phixRegister(String server, String username, String password) throws ApiException {
+        JsonObject body = new JsonObject();
+        body.addProperty("username", username);
+        body.addProperty("password", password);
+        body.addProperty("agree", true);
+        // 显式选 v1（scrypt-n15-r8-p1）：不带 auth_salt / auth_hash；
+        // 待客户端具备完整密钥管理后升级 v2
+        body.addProperty("kdf_algo", "scrypt-n15-r8-p1");
+        return postTo(server, "/api/v1/auth/register", body);
+    }
+
+    /** 向指定 phix 服务器 POST（HttpURLConnection，与 request() 同规则，但用 server 而非 config.serverBase）。 */
+    private JsonObject postTo(String server, String path, JsonObject body) throws ApiException {
+        HttpURLConnection c = null;
+        try {
+            c = (HttpURLConnection) new URL(server + path).openConnection();
+            c.setRequestMethod("POST");
+            c.setConnectTimeout(CONNECT_MS);
+            c.setReadTimeout(READ_MS);
+            c.setRequestProperty("Content-Type", "application/json; charset=utf-8");
+            c.setRequestProperty("Accept", "application/json");
+            c.setDoOutput(true);
+            try (OutputStream os = c.getOutputStream()) {
+                os.write(body.toString().getBytes(StandardCharsets.UTF_8));
+            }
+            int code = c.getResponseCode();
+            InputStream is = (code >= 200 && code < 300) ? c.getInputStream() : c.getErrorStream();
+            String text = readAll(is);
+            if (code >= 200 && code < 300) {
+                return parse(text);
+            }
+            String msg;
+            try {
+                msg = parse(text).get("error").getAsString();
+            } catch (Exception e) {
+                msg = "请求失败（" + code + "）";
+            }
+            throw new ApiException(code, msg);
+        } catch (ApiException ae) {
+            throw ae;
+        } catch (Exception e) {
+            throw new ApiException(0, "网络连接失败：" + e.getMessage());
+        } finally {
+            if (c != null) c.disconnect();
+        }
+    }
+
+    /** phix 连通性验证（只读 GET）：GET /api/v1/sync/manifest */
+    public JsonObject phixVerifyManifest(String server, String token) throws ApiException {
+        HttpURLConnection c = null;
+        try {
+            c = (HttpURLConnection) new URL(server + "/api/v1/sync/manifest").openConnection();
+            c.setRequestMethod("GET");
+            c.setConnectTimeout(CONNECT_MS);
+            c.setReadTimeout(READ_MS);
+            c.setRequestProperty("Accept", "application/json");
+            c.setRequestProperty("Authorization", "Bearer " + token);
+            int code = c.getResponseCode();
+            InputStream is = (code >= 200 && code < 300) ? c.getInputStream() : c.getErrorStream();
+            String text = readAll(is);
+            if (code >= 200 && code < 300) {
+                return parse(text);
+            }
+            throw new ApiException(code, "验证连通失败（" + code + "）");
+        } catch (ApiException ae) { throw ae;
+        } catch (Exception e) { throw new ApiException(0, "网络连接失败：" + e.getMessage());
+        } finally { if (c != null) c.disconnect(); }
+    }
+
+    // ---- profile.pub 头像（§4 新增对象，免解密封装） ----
+
+    /** 读取 profile.pub（明文展示对象）：GET /api/v1/sync/objects/profile.pub */
+    public JsonObject getProfilePub(String server, String token) throws ApiException {
+        HttpURLConnection c = null;
+        try {
+            c = (HttpURLConnection) new URL(server + "/api/v1/sync/objects/profile.pub").openConnection();
+            c.setRequestMethod("GET");
+            c.setConnectTimeout(CONNECT_MS);
+            c.setReadTimeout(READ_MS);
+            c.setRequestProperty("Accept", "application/json");
+            c.setRequestProperty("Authorization", "Bearer " + token);
+            int code = c.getResponseCode();
+            InputStream is = (code >= 200 && code < 300) ? c.getInputStream() : c.getErrorStream();
+            String text = readAll(is);
+            if (code >= 200 && code < 300) {
+                return parse(text);
+            }
+            // 404 表示还没有 profile.pub 对象，不是错误
+            if (code == 404) return null;
+            throw new ApiException(code, "读取头像失败（" + code + "）");
+        } catch (ApiException ae) { throw ae;
+        } catch (Exception e) { throw new ApiException(0, "网络连接失败：" + e.getMessage());
+        } finally { if (c != null) c.disconnect(); }
+    }
+
+    /** 上传 profile.pub（明文展示对象）：POST /api/v1/sync/objects/profile.pub */
+    public JsonObject postProfilePub(String server, String token, JsonObject payload, int baseRevision) throws ApiException {
+        HttpURLConnection c = null;
+        try {
+            c = (HttpURLConnection) new URL(server + "/api/v1/sync/objects/profile.pub").openConnection();
+            c.setRequestMethod("POST");
+            c.setConnectTimeout(CONNECT_MS);
+            c.setReadTimeout(READ_MS);
+            c.setRequestProperty("Content-Type", "application/json; charset=utf-8");
+            c.setRequestProperty("Accept", "application/json");
+            c.setRequestProperty("Authorization", "Bearer " + token);
+            c.setDoOutput(true);
+            // 信封格式：payload 是明文 JSON，revison 用于乐观锁
+            JsonObject envelope = new JsonObject();
+            envelope.add("payload", payload);
+            envelope.addProperty("base_revision", baseRevision);
+            try (OutputStream os = c.getOutputStream()) {
+                os.write(envelope.toString().getBytes(StandardCharsets.UTF_8));
+            }
+            int code = c.getResponseCode();
+            InputStream is = (code >= 200 && code < 300) ? c.getInputStream() : c.getErrorStream();
+            String text = readAll(is);
+            if (code >= 200 && code < 300) {
+                return parse(text);
+            }
+            throw new ApiException(code, "上传头像失败（" + code + "）");
+        } catch (ApiException ae) { throw ae;
+        } catch (Exception e) { throw new ApiException(0, "网络连接失败：" + e.getMessage());
+        } finally { if (c != null) c.disconnect(); }
+    }
 }

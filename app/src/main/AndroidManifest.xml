@@ -34,6 +34,11 @@
             android:theme="@style/Theme.MoodTree.NoActionBar" />
 
         <activity
+            android:name=".ui.PhixSessionActivity"
+            android:exported="false"
+            android:theme="@style/Theme.MoodTree.NoActionBar" />
+
+        <activity
             android:name=".ui.MainActivity"
             android:exported="false" />
     </application>

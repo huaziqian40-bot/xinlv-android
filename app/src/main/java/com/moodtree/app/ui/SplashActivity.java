@@ -96,12 +96,18 @@ public class SplashActivity extends AppCompatActivity {
         });
     }
 
-    /** 跳转到登录页（未登录/非游客）或主界面（已登录/游客） */
+    /** 跳转到 phix 引导页（首启）/ 登录页（未登录/非游客）或主界面（已登录/游客） */
     private void goNext() {
         Config config = ((App) getApplication()).config();
-        Intent i = config.canEnterMain()
-                ? new Intent(this, MainActivity.class)
-                : new Intent(this, LoginActivity.class);
+        Intent i;
+        if (!config.phixSessionDone()) {
+            // 首启引导（CONTRACT §7）：先问 phix 凭据
+            i = new Intent(this, PhixSessionActivity.class);
+        } else if (config.canEnterMain()) {
+            i = new Intent(this, MainActivity.class);
+        } else {
+            i = new Intent(this, LoginActivity.class);
+        }
         startActivity(i);
         overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
         finish();

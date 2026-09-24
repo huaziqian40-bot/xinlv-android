@@ -73,4 +73,10 @@ public class Config {
 
     /** 可以直接进主界面：已登录，或用户选了游客模式 */
     public boolean canEnterMain() { return loggedIn() || guestMode(); }
+
+    // ---- phix 会话标记（首启引导流程 §7） ----
+
+    /** 首启引导是否已完成（询问→登录/注册/跳过 后置 true，之后不再弹出） */
+    public boolean phixSessionDone() { return prefs.getBoolean("phixSessionDone", false); }
+    public void setPhixSessionDone(boolean done) { prefs.edit().putBoolean("phixSessionDone", done).apply(); }
 }

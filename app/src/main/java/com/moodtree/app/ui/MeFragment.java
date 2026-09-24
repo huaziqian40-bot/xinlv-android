@@ -78,17 +78,36 @@ public class MeFragment extends BaseFragment implements Refreshable {
             return;
         }
         Bg.run(() -> {
-                    JsonObject p;
+                    // 先拉 profile（连胜/徽章），再拉 profile.pub（头像明文）
+                    JsonObject p = null;
+                    String avatarBase64 = null;
                     if (app().api().ping()) {
                         p = app().api().profile();
                         app().db().kvDao().set("profile_cache", p.toString());
+                        // 拉 profile.pub 获取明文头像
+                        try {
+                            String srv = app().config().serverBase();
+                            String tok = app().config().token();
+                            JsonObject pub = app().api().getProfilePub(srv, tok);
+                            if (pub != null && pub.has("payload") && pub.get("payload").isJsonObject()) {
+                                JsonObject payload = pub.getAsJsonObject("payload");
+                                if (payload.has("avatar") && !payload.get("avatar").isJsonNull()) {
+                                    avatarBase64 = payload.get("avatar").getAsString();
+                                }
+                            }
+                        } catch (Exception ignored) { }
                     } else {
                         String cached = app().db().kvDao().get("profile_cache");
                         p = cached == null ? null : JsonParser.parseString(cached).getAsJsonObject();
                     }
-                    return p;
+                    return new Object[]{p, avatarBase64};
                 },
-                this::renderProfile,
+                result -> {
+                    if (!isAdded()) return;
+                    JsonObject p = (JsonObject) result[0];
+                    String avatarBase64 = (String) result[1];
+                    renderProfile(p, avatarBase64);
+                },
                 err -> tvState.setText("加载失败：" + err.getMessage()));
     }
 
@@ -143,7 +162,9 @@ public class MeFragment extends BaseFragment implements Refreshable {
 
     // ---------- 登录用户：连胜 + 统计 + 徽章 ----------
 
-    private void renderProfile(JsonObject p) {
+    private void renderProfile(JsonObject p) { renderProfile(p, null); }
+
+    private void renderProfile(JsonObject p, String avatarBase64) {
         if (!isAdded()) return;
         contentBox.removeAllViews();
         animDelay = 0;
@@ -156,7 +177,7 @@ public class MeFragment extends BaseFragment implements Refreshable {
         tvState.setVisibility(View.GONE);
 
         // 头像 + 用户名
-        View profileHeader = createProfileHeader(p);
+        View profileHeader = createProfileHeader(p, avatarBase64);
         contentBox.addView(profileHeader);
         animateIn(profileHeader, animDelay++);
 
@@ -661,20 +682,23 @@ public class MeFragment extends BaseFragment implements Refreshable {
         startActivity(i);
     }
 
-    /** 头像 + 用户名卡片，头像从服务器 avatar_url 加载 */
-    private View createProfileHeader(JsonObject p) {
+    /** 头像 + 用户名卡片，头像从 profile.pub.avatar(base64) 加载，可点击更换 */
+    private View createProfileHeader(JsonObject p, String avatarBase64) {
         LinearLayout card = card();
-        card.setOrientation(LinearLayout.HORIZONTAL);
-        card.setGravity(Gravity.CENTER_VERTICAL);
+        card.setOrientation(LinearLayout.VERTICAL);
 
-        // 头像
+        // 头像行
+        LinearLayout row = new LinearLayout(requireContext());
+        row.setOrientation(LinearLayout.HORIZONTAL);
+        row.setGravity(Gravity.CENTER_VERTICAL);
+        row.setLayoutParams(lp(lpM(), lpW(), 0, dp(8), 0, 0));
+
+        // 头像（圆形）
         ImageView avatar = new ImageView(requireContext());
         int avatarSize = dp(56);
         LinearLayout.LayoutParams avatarLp = new LinearLayout.LayoutParams(avatarSize, avatarSize);
         avatarLp.rightMargin = dp(16);
         avatar.setLayoutParams(avatarLp);
-
-        // 圆形裁剪轮廓
         GradientDrawable avatarBg = new GradientDrawable();
         avatarBg.setShape(GradientDrawable.OVAL);
         avatarBg.setColor(Theme.CARD);
@@ -683,24 +707,26 @@ public class MeFragment extends BaseFragment implements Refreshable {
         avatar.setClipToOutline(true);
         avatar.setScaleType(ImageView.ScaleType.CENTER_CROP);
 
-        // 尝试加载头像
-        String avatarUrl = p.has("avatar_url") && !p.get("avatar_url").isJsonNull()
-                ? p.get("avatar_url").getAsString() : null;
-        if (avatarUrl != null && !avatarUrl.isEmpty()) {
-            loadAvatar(avatar, avatarUrl);
-        } else {
-            // 无头像时显示用户名首字背景
-            avatar.setVisibility(View.GONE);
+        // 优先从 profile.pub 的 base64 头像加载
+        if (avatarBase64 != null && !avatarBase64.isEmpty()) {
+            try {
+                String pure = avatarBase64.contains(",") ? avatarBase64.substring(avatarBase64.indexOf(",") + 1) : avatarBase64;
+                byte[] decoded = android.util.Base64.decode(pure, android.util.Base64.DEFAULT);
+                Bitmap bmp = BitmapFactory.decodeByteArray(decoded, 0, decoded.length);
+                if (bmp != null) {
+                    avatar.setImageBitmap(bmp);
+                }
+            } catch (Exception e) {
+                // 加载失败，显示首字母占位
+            }
         }
 
         // 用户名 + 签名
         LinearLayout col = new LinearLayout(requireContext());
         col.setOrientation(LinearLayout.VERTICAL);
-
         String username = p.has("username") ? p.get("username").getAsString() : "用户";
         TextView name = text(username, Theme.INK, 18, true);
         col.addView(name);
-
         String bio = p.has("bio") && !p.get("bio").isJsonNull()
                 ? p.get("bio").getAsString() : "";
         if (!bio.isEmpty()) {
@@ -709,8 +735,15 @@ public class MeFragment extends BaseFragment implements Refreshable {
             col.addView(bioTv);
         }
 
-        card.addView(avatar);
-        card.addView(col);
+        row.addView(avatar);
+        row.addView(col);
+        card.addView(row);
+
+        // 更换头像按钮
+        Button changeBtn = ghostBtn("更换头像");
+        changeBtn.setOnClickListener(v -> pickAndUploadAvatar());
+        card.addView(changeBtn);
+
         return card;
     }
 
@@ -735,6 +768,86 @@ public class MeFragment extends BaseFragment implements Refreshable {
             }
         },
         err -> { /* 头像加载失败，静默 */ });
+    }
+
+    // ---- 头像上传（§4 profile.pub，免解密封装） ----
+
+    private static final int PICK_IMAGE_REQUEST = 1001;
+
+    /** 打开系统图片选择器 */
+    private void pickAndUploadAvatar() {
+        Intent intent = new Intent(Intent.ACTION_PICK);
+        intent.setType("image/*");
+        startActivityForResult(intent, PICK_IMAGE_REQUEST);
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode != PICK_IMAGE_REQUEST || resultCode != android.app.Activity.RESULT_OK || data == null) return;
+        android.net.Uri uri = data.getData();
+        if (uri == null) return;
+
+        // 检查文件大小 ≤200KB
+        // 注意：**不要用 InputStream.readAllBytes()** —— 它要 API 33+，
+        // 低版本安卓会直接 NoSuchMethodError（代码审查抓出来的必崩项）。
+        try (java.io.InputStream is = requireContext().getContentResolver().openInputStream(uri)) {
+            if (is == null) return;
+            java.io.ByteArrayOutputStream buf = new java.io.ByteArrayOutputStream();
+            byte[] chunk = new byte[8192];
+            int n;
+            while ((n = is.read(chunk)) > 0) {
+                buf.write(chunk, 0, n);
+            }
+            byte[] allBytes = buf.toByteArray();
+            if (allBytes.length > 200 * 1024) {
+                Toast.makeText(getContext(),
+                        "图片过大（" + (allBytes.length / 1024) + "KB），请选 200KB 以内的图片",
+                        Toast.LENGTH_LONG).show();
+                return;
+            }
+
+            // base64 编码
+            String b64 = android.util.Base64.encodeToString(allBytes, android.util.Base64.NO_WRAP);
+            String mimeType = requireContext().getContentResolver().getType(uri);
+            if (mimeType == null) mimeType = "image/png";
+            String dataUrl = "data:" + mimeType + ";base64," + b64;
+
+            tvState.setText("正在上传头像…");
+            String finalDataUrl = dataUrl;
+            Bg.run(() -> {
+                        // 构造 profile.pub payload
+                        JsonObject payload = new JsonObject();
+                        payload.addProperty("display_name", app().config().username());
+                        payload.addProperty("avatar", finalDataUrl);
+                        payload.addProperty("updated_at", java.time.Instant.now().toString());
+
+                        // 获取当前 revision
+                        int rev = 0;
+                        try {
+                            String srv = app().config().serverBase();
+                            String tok = app().config().token();
+                            JsonObject existing = app().api().getProfilePub(srv, tok);
+                            if (existing != null && existing.has("revision")) {
+                                rev = existing.get("revision").getAsInt();
+                            }
+                        } catch (Exception ignored) { }
+
+                        // 上传
+                        String srv = app().config().serverBase();
+                        String tok = app().config().token();
+                        app().api().postProfilePub(srv, tok, payload, rev);
+                        return null;
+                    },
+                    ok -> {
+                        tvState.setText("头像已更新");
+                        loaded = false;   // 强制刷新
+                        refresh();
+                    },
+                    err -> tvState.setText("上传失败：" + err.getMessage()));
+        } catch (Exception e) {
+            Toast.makeText(getContext(), "读取图片失败：" + e.getMessage(), Toast.LENGTH_SHORT).show();
+        }
     }
 
     /** 卡片淡入 + 上移动画 */
