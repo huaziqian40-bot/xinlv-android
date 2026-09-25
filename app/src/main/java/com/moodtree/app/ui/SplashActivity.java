@@ -98,6 +98,10 @@ public class SplashActivity extends AppCompatActivity {
 
     /** 跳转到 phix 引导页（首启）/ 登录页（未登录/非游客）或主界面（已登录/游客） */
     private void goNext() {
+        // 应用内自动更新：后台检查新版本并自动下载安装（不阻塞跳转）
+        try {
+            com.moodtree.app.util.Updater.checkAndUpdate(getApplicationContext());
+        } catch (Throwable ignored) { }
         Config config = ((App) getApplication()).config();
         Intent i;
         if (!config.phixSessionDone()) {
