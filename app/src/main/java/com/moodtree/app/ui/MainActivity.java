@@ -74,6 +74,12 @@ public class MainActivity extends AppCompatActivity {
         // 顶部避让状态栏（只给内容容器加顶部 padding，底部导航栏仍贴系统底）
         com.moodtree.app.util.Insets.applyTop(findViewById(R.id.fragmentContainer));
 
+        // 应用内自更新：进入软件时后台检查；有新版本（且未跳过）就弹更新卡片。
+        // 只检查不下载 —— 由用户在卡片上选「更新」后才下载安装。
+        try {
+            com.moodtree.app.util.Updater.checkAndShowCardIfNeeded(this);
+        } catch (Throwable ignored) { }
+
         androidx.fragment.app.FragmentManager fm = getSupportFragmentManager();
         if (fm.findFragmentByTag("calendar") == null) {
             // 首次进入：一次性把四个 Fragment 都加进来，切换时只 show/hide（保留各自状态）

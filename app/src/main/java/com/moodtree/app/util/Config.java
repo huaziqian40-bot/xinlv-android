@@ -79,4 +79,12 @@ public class Config {
     /** 首启引导是否已完成（询问→登录/注册/跳过 后置 true，之后不再弹出） */
     public boolean phixSessionDone() { return prefs.getBoolean("phixSessionDone", false); }
     public void setPhixSessionDone(boolean done) { prefs.edit().putBoolean("phixSessionDone", done).apply(); }
+
+    // ---- 应用内自更新 ----
+
+    /** 用户点过「跳过本版本」的版本号：该版本不再弹更新卡片（更高的新版本照常提示） */
+    public String skippedUpdateVersion() { return prefs.getString("skippedUpdateVersion", ""); }
+    public void setSkippedUpdateVersion(String v) {
+        prefs.edit().putString("skippedUpdateVersion", v == null ? "" : v.trim()).apply();
+    }
 }

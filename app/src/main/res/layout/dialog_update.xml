@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 发现新版本卡片：版本号 + 更新内容 + 三个按钮（取消 / 跳过本版本 / 更新）。
+     所有颜色由 Updater.showUpdateCard() 按当前主题程序化设置（与 dialog_mood 同一套做法）。 -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@android:color/transparent"
+    android:padding="20dp">
+
+    <TextView
+        android:id="@+id/tvUpdateTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="发现新版本"
+        android:textSize="18sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/tvUpdateVersion"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:textSize="15sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/tvUpdateNotesLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="14dp"
+        android:text="本次更新内容"
+        android:textSize="13sp" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:maxHeight="220dp">
+
+        <TextView
+            android:id="@+id/tvUpdateNotes"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:lineSpacingExtra="4dp"
+            android:textSize="13sp" />
+    </ScrollView>
+
+    <TextView
+        android:id="@+id/tvUpdateHint"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:textSize="11sp"
+        android:text="更新会下载新版本并调起系统安装器，安装时请在系统提示里确认。" />
+
+    <!-- 三个按钮：取消（这次先不选，继续用软件）/ 跳过本版本 / 更新 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="18dp"
+        android:orientation="horizontal"
+        android:gravity="end">
+
+        <TextView
+            android:id="@+id/btnUpdateCancel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="?android:attr/selectableItemBackground"
+            android:paddingLeft="14dp"
+            android:paddingRight="14dp"
+            android:paddingTop="9dp"
+            android:paddingBottom="9dp"
+            android:text="取消"
+            android:textSize="14sp" />
+
+        <TextView
+            android:id="@+id/btnUpdateSkip"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="6dp"
+            android:background="?android:attr/selectableItemBackground"
+            android:paddingLeft="14dp"
+            android:paddingRight="14dp"
+            android:paddingTop="9dp"
+            android:paddingBottom="9dp"
+            android:text="跳过本版本"
+            android:textSize="14sp" />
+
+        <TextView
+            android:id="@+id/btnUpdateNow"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="6dp"
+            android:paddingLeft="18dp"
+            android:paddingRight="18dp"
+            android:paddingTop="9dp"
+            android:paddingBottom="9dp"
+            android:text="更新"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+</LinearLayout>
