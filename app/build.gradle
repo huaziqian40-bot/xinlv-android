@@ -64,4 +64,7 @@ dependencies {
 
     // JSON
     implementation 'com.google.code.gson:gson:2.11.0'
+
+    // 单元测试（仅本地 test，不打进 App）
+    testImplementation 'junit:junit:4.13.2'
 }

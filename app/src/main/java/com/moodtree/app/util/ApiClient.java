@@ -166,6 +166,17 @@ public class ApiClient {
         return post("/api/v1/sync/push/", entriesJson, true);
     }
 
+    /** 长轮询：挂着等服务端说该账号的 mood 数据变了。read 超时由调用方指定（长轮询需略长于
+     *  服务端 hold 时间，见 SyncWatcher 的注释）。返回 {changed, cursor, server_time, 可能带 retry_after}。
+     *  服务端太忙时立刻返回 changed=false + retry_after；老服务端没有该端点会返回 404（由调用方降级）。 */
+    public JsonObject watchEntries(String since, int readTimeoutMs) throws ApiException {
+        // ISO8601（含 +08:00 的 +）必须做 URL 编码，与 get() 里的处理一致
+        String path = since == null || since.isEmpty()
+                ? "/api/v1/sync/watch/"
+                : "/api/v1/sync/watch/?since=" + URLEncoder.encode(since, StandardCharsets.UTF_8);
+        return request("GET", path, null, true, readTimeoutMs);
+    }
+
     /** 在线小游戏物理参数（免认证）；网络失败抛 ApiException，调用方保留本地默认值。 */
     public JsonObject gameConfig() throws ApiException {
         return get("/api/game-config/", null, false);

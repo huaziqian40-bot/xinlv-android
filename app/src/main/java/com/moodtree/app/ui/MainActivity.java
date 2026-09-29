@@ -28,6 +28,7 @@ import com.moodtree.app.db.MoodEntry;
 import com.moodtree.app.model.MoodMeta;
 import com.moodtree.app.model.Theme;
 import com.moodtree.app.sync.SyncEngine;
+import com.moodtree.app.sync.SyncWatcher;
 import com.moodtree.app.util.Bg;
 
 /** 主界面：底部导航四页（日历/推荐/树洞/我的）。游客与登录用户共用，各页内部按状态适配。
@@ -57,6 +58,9 @@ public class MainActivity extends AppCompatActivity {
     // ---- 情绪视觉影响 ----
     private MoodOverlayView moodOverlay;
     private RainView rainContainer;
+
+    // ---- 前台长轮询同步：仅在前台运行时挂着等云端变化（见 onStart/onStop）----
+    private SyncWatcher watcher;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -163,8 +167,8 @@ public class MainActivity extends AppCompatActivity {
             nav.post(() -> ((Refreshable) active).refresh());
         }
 
-        // 进主界面后异步同步一轮（登录用户）；游客静默跳过
-        requestSync(null);
+        // 前台长轮询：应用可见时才在线挂着等云端变化（真正启停见 onStart/onStop）
+        watcher = new SyncWatcher(app().config(), app().api(), app().db());
 
         // 创建通知渠道（Android 8+ 必需，重复创建安全）
         createNotificationChannel();
@@ -416,8 +420,32 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onStart() {
+        super.onStart();
+        if (watcher == null) return;   // onCreate 提前 finish（异常路径）时兜底
+        // 回前台（含首次进入）：补跑一轮完整同步，把后台期间漏掉的变化立刻收下来，
+        // 然后开起前台长轮询 —— 从这一刻起云端一变这边秒级响应。
+        requestSync(null);
+        watcher.start();   // 未登录内部会静默跳过
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        // 退后台：停掉长轮询。Android 会杀掉后台进程里挂着的长连接，留着只会白耗电和流量，
+        // 所以"仅前台"才是诚实的设计。回前台时由 onStart 补同步 + 重启环路。
+        if (watcher != null) watcher.stop();
+    }
+
+    /** 登出时调用：停掉长轮询，避免拿着已失效的令牌还在循环请求。 */
+    public void stopWatcher() {
+        if (watcher != null) watcher.stop();
+    }
+
+    @Override
     protected void onDestroy() {
         stopProactivePolling();
+        if (watcher != null) watcher.stop();   // 兜底：确保线程不泄露
         super.onDestroy();
     }
 }

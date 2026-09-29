@@ -673,6 +673,8 @@ public class MeFragment extends BaseFragment implements Refreshable {
     }
 
     private void doLogout() {
+        // 登出先停掉前台长轮询，别拿着已失效的令牌继续向服务器循环请求
+        if (getActivity() instanceof MainActivity) ((MainActivity) getActivity()).stopWatcher();
         app().config().setToken("");
         app().config().setGuestMode(false);
         // 清同步游标涉及 Room 写库，挪后台线程，避免主线程查库闪退
