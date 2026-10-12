@@ -8,6 +8,7 @@ import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.GradientDrawable;
+import android.net.Uri;
 import android.os.Bundle;
 import android.text.InputFilter;
 import android.text.InputType;
@@ -34,6 +35,8 @@ import com.moodtree.app.sync.SyncEngine;
 import com.moodtree.app.util.Bg;
 import com.moodtree.app.util.Config;
 import com.moodtree.app.util.ImageLoader;
+import com.moodtree.app.util.Updater;
+import com.moodtree.app.util.UpdateReport;
 
 import java.time.LocalDate;
 import java.util.HashSet;
@@ -158,6 +161,7 @@ public class MeFragment extends BaseFragment implements Refreshable {
         contentBox.addView(card);
 
         contentBox.addView(buildSettings(true));
+        contentBox.addView(buildAboutCard());
     }
 
     // ---------- 登录用户：连胜 + 统计 + 徽章 ----------
@@ -172,6 +176,7 @@ public class MeFragment extends BaseFragment implements Refreshable {
             tvState.setText("离线且暂无缓存数据，联网后这里会显示你的连胜和徽章");
             tvState.setVisibility(View.VISIBLE);
             contentBox.addView(buildSettings(false));
+            contentBox.addView(buildAboutCard());
             return;
         }
         tvState.setVisibility(View.GONE);
@@ -227,6 +232,11 @@ public class MeFragment extends BaseFragment implements Refreshable {
         View settings = buildSettings(false);
         contentBox.addView(settings);
         animateIn(settings, animDelay);
+
+        // 「关于软件」：当前版本 + 检查更新 + 作者信息 + 访问官网
+        View about = buildAboutCard();
+        contentBox.addView(about);
+        animateIn(about, animDelay);
     }
 
     /** 连胜大卡：🔥 + N 天 + 说明 */
@@ -363,6 +373,82 @@ public class MeFragment extends BaseFragment implements Refreshable {
         }
 
         return box;
+    }
+
+    /** 「关于软件」卡片（与官网脚注一致）：当前版本 + 检查更新 + 作者信息 + 访问官网。
+     *  检查更新复用 Updater，绝不另写一个检查器；绝不向用户暴露任何服务器地址/游标/令牌等内部细节。 */
+    private View buildAboutCard() {
+        LinearLayout box = card();
+        box.addView(text("关于软件", Theme.INK, 16, true));
+
+        // 1. 当前版本：从已安装包读（PackageInfo），绝不硬编码版本号
+        String version = Updater.currentVersion(getContext());
+        TextView tvVersion = text("当前版本  v" + version, Theme.INK, 14);
+        tvVersion.setPadding(0, dp(4), 0, dp(6));
+        box.addView(tvVersion);
+
+        // 2. 手动「检查更新」：复用 Updater 的网络检查；忙时禁用按钮显示【正在检查…】
+        Button checkBtn = ghostBtn("检查更新");
+        TextView checkState = text("", Theme.INK_SOFT, 12);
+        checkBtn.setOnClickListener(v -> {
+            checkBtn.setEnabled(false);
+            checkState.setText("正在检查…");
+            Updater.manualCheck(getActivity(), (result, newVersion) -> {
+                // 回调回来时 Fragment 可能已销毁/脱离，先判 isAdded 再碰视图，防闪退
+                if (!isAdded()) return;
+                checkBtn.setEnabled(true);      // 检查完恢复可用
+                checkState.setText(UpdateReport.describe(result, newVersion));
+            });
+        });
+        box.addView(checkBtn);
+        box.addView(checkState);
+
+        // 3. 作者信息：与官网脚注逐字一致；邮箱/B站可点开，电话/微信号纯文本
+        final int SP = dp(6);
+        box.addView(textWithPad("上海民办平和学校 · 维修社 · 用代码装点校园生活", Theme.INK, 13, 0, SP));
+        addTapable(box, "📧 norine.liu@icloud.com", "mailto:norine.liu@icloud.com", "可发邮件至 norine.liu@icloud.com");
+        addTapable(box, "📧 huaziqian40@gmail.com", "mailto:huaziqian40@gmail.com", "可发邮件至 huaziqian40@gmail.com");
+        box.addView(textWithPad("📞 18901712280 / 13675821816", Theme.INK, 13, 0, SP));
+        box.addView(textWithPad("💬 微信：Norine2010 / int_32_2147483647", Theme.INK, 13, 0, SP));
+        addTapable(box, "📺 B站主页", "https://space.bilibili.com/1121702307", "可打开 B站主页");
+        box.addView(textWithPad("© 2026 phix", Theme.INK_SOFT, 12, 0, SP));
+
+        // 4. 访问官网
+        Button siteBtn = ghostBtn("访问官网");
+        siteBtn.setOnClickListener(v -> openActionView("https://phix.ing/download/", "官网"));
+        box.addView(siteBtn);
+
+        return box;
+    }
+
+    /** 可点击跳转的一行文本：mailto 用邮件应用、其它用浏览器（交由 openActionView 处理）。
+     *  外层包 try/catch，没有能处理的应用时绝不崩溃、只 Toast 兜底。 */
+    private void addTapable(LinearLayout box, String caption, String uri, String fallbackToast) {
+        TextView t = text(caption, Theme.ACCENT, 13);
+        t.setPadding(0, dp(6), 0, dp(6));
+        t.setClickable(true);
+        t.setOnClickListener(v -> openActionView(uri, fallbackToast));
+        box.addView(t);
+    }
+
+    /** 打开可点击的链接：mailto 用 SENDTO 交给系统邮件应用，其它（网址等）用 VIEW 交给浏览器。
+     *  外层包 try/catch 防「没有应用能处理」崩溃，失败只 Toast 兜底。 */
+    private void openActionView(String uri, String fallbackToast) {
+        try {
+            Intent intent = uri.startsWith("mailto:")
+                    ? new Intent(Intent.ACTION_SENDTO, Uri.parse(uri))
+                    : new Intent(Intent.ACTION_VIEW, Uri.parse(uri));
+            startActivity(intent);
+        } catch (Exception e) {
+            Toast.makeText(getContext(), "打不开，请手动查看：" + fallbackToast, Toast.LENGTH_LONG).show();
+        }
+    }
+
+    /** 与 text() 相同，但额外指定上下 padding（spacing）的便捷写法 */
+    private TextView textWithPad(String s, int color, float sizeSp, int padTop, int padBottom) {
+        TextView t = text(s, color, sizeSp);
+        t.setPadding(0, padTop, 0, padBottom);
+        return t;
     }
 
     private void applyTheme(String id, String accent) {

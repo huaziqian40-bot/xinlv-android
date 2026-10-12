@@ -23,10 +23,12 @@ import com.moodtree.app.model.Theme;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.function.BiConsumer;
 
 /** 心履 Android 应用内自更新（国内分发，无 Google Play）。
  *
@@ -43,6 +45,9 @@ public final class Updater {
     private static final String TAG = "XinlvUpdater";
     private static final String CHECK_URL =
             "https://phix.ing/api/v1/update/check?product=xinlv&platform=android";
+
+    // 更新卡片是否正在展示：防止启动自检刚弹完还没关，手动「检查更新」又叠一张
+    private static boolean cardShowing;
 
     private Updater() { }
 
@@ -69,9 +74,10 @@ public final class Updater {
      * 不自动下载 —— 由用户在卡片上选「更新」后才下载安装。
      */
     public static void checkAndShowCardIfNeeded(Activity activity) {
+        final String current = currentVersion(activity);
         Bg.run(() -> {
             try {
-                Info info = fetchInfo(activity);
+                Info info = fetchInfo(activity, current);
                 if (info == null) return;
                 Config config = ((com.moodtree.app.App) activity.getApplication()).config();
                 // 用户点过「跳过本版本」→ 该版本不再提示
@@ -86,13 +92,44 @@ public final class Updater {
         });
     }
 
-    /** 拉取版本信息；无更新或字段不全时返回 null。 */
-    private static Info fetchInfo(Context ctx) throws Exception {
+    /** 手动「检查更新」：复用上面同一套网络查询，不另写检查器。
+     *
+     *  后台联网，绝不阻塞 UI 线程；结果分类后回到主线程回调。
+     *  三态严格分开——「检查失败」（离线 / 服务不可达 / 响应异常）走 onErr，
+     *  绝不落到「已是最新版本」分支，从根上避免“离线看起来像最新”的坑。 */
+    public static void manualCheck(Activity activity,
+                                   BiConsumer<UpdateReport.ManualResult, String> onResult) {
+        final Context ctx = activity.getApplicationContext();
+        final String current = currentVersion(ctx);
+        Bg.run(() -> fetchInfo(ctx, current),   // null=已最新；网络/响应异常=抛异常（走 onErr）
+                info -> {
+                    if (activity.isFinishing() || activity.isDestroyed()) return;
+                    if (info == null) {
+                        onResult.accept(UpdateReport.ManualResult.UP_TO_DATE, "");
+                    } else {
+                        Config config = ((com.moodtree.app.App) activity.getApplication()).config();
+                        // 有更新就进既有更新流程；卡片正在展示就不重复叠
+                        showUpdateCard(activity, info, config);
+                        onResult.accept(UpdateReport.ManualResult.UPDATE_AVAILABLE, info.version);
+                    }
+                },
+                err -> {
+                    Log.w(TAG, "manual update check failed", err);
+                    if (activity.isFinishing() || activity.isDestroyed()) return;
+                    onResult.accept(UpdateReport.ManualResult.FAILED, "");
+                });
+    }
+
+    /** 拉取版本信息。
+     *  @param current 当前已装版本（versionName）
+     *  @return 有新版本时的 Info；服务端返回的版本不高于当前 → null（“已是最新”）。
+     *          服务不可达或响应异常 → 抛异常，让调用方能把它和「已是最新」清楚分开。 */
+    private static Info fetchInfo(Context ctx, String current) throws Exception {
         HttpURLConnection conn = (HttpURLConnection) new URL(CHECK_URL).openConnection();
         conn.setConnectTimeout(8000);
         conn.setReadTimeout(8000);
-        conn.setRequestProperty("User-Agent", "Xinlv-Android-" + currentVersion(ctx));
-        if (conn.getResponseCode() != 200) return null;
+        conn.setRequestProperty("User-Agent", "Xinlv-Android-" + current);
+        if (conn.getResponseCode() != 200) throw new IOException("HTTP " + conn.getResponseCode());
         String json = new String(readAll(conn.getInputStream()), StandardCharsets.UTF_8);
 
         Info info = new Info();
@@ -100,13 +137,35 @@ public final class Updater {
         info.url = jsonString(json, "url");
         info.sha256 = jsonString(json, "sha256");
         info.notes = jsonString(json, "release_notes");
-        if (info.version.isEmpty() || info.url.isEmpty() || info.sha256.isEmpty()) return null;
-        if (info.version.equals(currentVersion(ctx))) return null;
+        if (info.version.isEmpty() || info.url.isEmpty() || info.sha256.isEmpty())
+            throw new IOException("update response incomplete");
+        // 不是更新（<=当前版本）才算“已是最新”；更低版本也算最新，不该弹更新
+        if (compareVersions(info.version, current) <= 0) return null;
         return info;
+    }
+
+    /** 比较两个点分数字版本号：a>b 正数、相等 0、a<b 负数。
+     *  “1.2.34” < “1.2.35”。段数不同时缺失段按 0 补齐（1.2 == 1.2.0）。 */
+    private static int compareVersions(String a, String b) {
+        String[] as = a.split("\\.");
+        String[] bs = b.split("\\.");
+        int n = Math.max(as.length, bs.length);
+        for (int i = 0; i < n; i++) {
+            int x = i < as.length ? parseIntLenient(as[i]) : 0;
+            int y = i < bs.length ? parseIntLenient(bs[i]) : 0;
+            if (x != y) return x - y;
+        }
+        return 0;
+    }
+
+    private static int parseIntLenient(String s) {
+        try { return Integer.parseInt(s); } catch (NumberFormatException e) { return 0; }
     }
 
     /** 弹更新卡片：版本号 + 更新内容 + 取消 / 跳过本版本 / 更新。 */
     private static void showUpdateCard(Activity activity, Info info, Config config) {
+        // 同一实例同一版本别叠两张卡片（启动自检可能刚弹完还没关）
+        if (cardShowing) return;
         View view = LayoutInflater.from(activity).inflate(R.layout.dialog_update, null);
 
         TextView tvVersion = view.findViewById(R.id.tvUpdateVersion);
@@ -152,6 +211,9 @@ public final class Updater {
             downloadAndInstall(activity, info);
         });
 
+        // 关掉时放开卡片占用标记，允许后续再弹（取消/跳过/更新/点外部都会走这里）
+        dialog.setOnDismissListener(d -> cardShowing = false);
+        cardShowing = true;
         dialog.show();
     }
 
